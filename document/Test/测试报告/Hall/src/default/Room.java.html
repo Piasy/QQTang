@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>Room.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">HallInfoTest (2013-12-14 14:40:45)</a> &gt; <a href="../../index.html" class="el_group">Hall</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.html" class="el_package">default</a> &gt; <span class="el_source">Room.java</span></div><h1>Room.java</h1><pre class="source lang-java linenums">import java.util.*;
+import java.io.*;
+import java.net.*;
+import net.sf.json.*;
+	
+public class Room {
+	/**.
+	 * 该房间中每个位置的用户id
+	 */
+	private String[] users;
+
+	/**.
+	 * 该房间中每个位置的状态
+	 */
+	private int[] status;
+	public final static int EMPTY = 0;
+	public final static int UNREADY = 1;
+	public final static int READY = 2;
+
+	/**.
+	 * 该房间的状态
+	 */
+	private int stage;
+
+	public final static int WAITING = 0;
+	public final static int ALLREADY = 1;
+	public final static int PLAYING = 2;
+
+	/**.
+	 * 该房间每个位置的用户加入游戏服务器的一次性口令
+	 */
+	private String[] key;
+
+	/**.
+	 * 该房间每个位置的用户加入游戏服务器的ip地址
+	 */
+	private String[] ip;
+
+	/**.
+	 * 该房间每个位置的用户加入游戏服务器的端口号
+	 */
+	private int[] port;
+
+	/**.
+	 * 该房间的编号
+	 */
+	private int num;
+
+	/**.
+	 * 该房间内的聊天记录
+	 */
+	private JSONArray[] msg;
+
+<span class="fc" id="L54">	Room(int _num) {</span>
+<span class="fc" id="L55">		users =  new String[Constant.ROOM_LIMIT];</span>
+<span class="fc" id="L56">		status = new int[Constant.ROOM_LIMIT];</span>
+<span class="fc" id="L57">		key = new String[Constant.ROOM_LIMIT];</span>
+<span class="fc" id="L58">		ip = new String[Constant.ROOM_LIMIT];</span>
+<span class="fc" id="L59">		port = new int[Constant.ROOM_LIMIT];</span>
+<span class="fc" id="L60">		num = _num;</span>
+<span class="fc" id="L61">		msg = new JSONArray[Constant.ROOM_LIMIT];</span>
+<span class="fc bfc" id="L62" title="All 2 branches covered.">		for (int i = 0; i &lt; Constant.ROOM_LIMIT; i++) {</span>
+<span class="fc" id="L63">			users[i] = &quot;&quot;;</span>
+<span class="fc" id="L64">			status[i] = EMPTY;</span>
+<span class="fc" id="L65">			msg[i] = new JSONArray();</span>
+		}
+<span class="fc" id="L67">		stage = WAITING;</span>
+<span class="fc" id="L68">    }</span>
+
+	/**.
+	 * 获取该房间内的一个空位编号，若没有则返回-1
+	 */
+	public int getEmpty() {
+<span class="fc bfc" id="L74" title="All 2 branches covered.">		for (int i = 0; i &lt; status.length; i++) {</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">			if (status[i] == EMPTY) {</span>
+<span class="fc" id="L76">				return i;</span>
+			}
+		}
+<span class="fc" id="L79">		return -1;</span>
+	}
+
+	/**.
+	 * 查询该房间内一个位置的状态
+	 */
+	public int getStatus(int pos) throws Exception {
+<span class="fc" id="L86">		return status[pos];</span>
+	}
+
+	/**.
+	 * 查询该房间内一个位置的用户名称
+	 */
+	public String getUser(int pos) throws Exception {
+<span class="fc" id="L93">		return users[pos];</span>
+	}
+
+	/**.
+	 * 用户user进入该房间的pos号座位
+	 */
+	public void enter(int pos, String user) throws Exception {
+<span class="fc" id="L100">		users[pos] = user;</span>
+<span class="fc" id="L101">		status[pos] = UNREADY;</span>
+<span class="fc" id="L102">	}</span>
+
+	/**.
+	 * 用户user离开该房间
+	 */
+	public void leave(int pos) throws Exception {
+<span class="fc" id="L108">		users[pos] = &quot;&quot;;</span>
+<span class="fc" id="L109">		status[pos] = EMPTY;</span>
+<span class="fc" id="L110">		msg[pos] = new JSONArray();</span>
+		
+<span class="fc" id="L112">		boolean flag = true;</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">		for (int i=0; i&lt;status.length; i++)</span>
+<span class="pc bpc" id="L114" title="1 of 2 branches missed.">			if (status[i] != EMPTY) flag = false;</span>
+<span class="pc bpc" id="L115" title="1 of 2 branches missed.">		if (flag) stage = WAITING;</span>
+<span class="fc" id="L116">	}</span>
+	
+	/**.
+	 * 在pos号位置的用户准备
+	 */
+	public void ready(int pos) throws Exception {
+<span class="fc" id="L122">		status[pos] = READY;</span>
+<span class="fc" id="L123">	}</span>
+
+	/**.
+	 * 在pos号位置的用户取消准备
+	 */
+	public void unready(int pos) throws Exception {
+<span class="fc" id="L129">		status[pos] = UNREADY;</span>
+<span class="fc" id="L130">	}</span>
+
+	/**.
+	 * 判断房间内所有用户是否都已准备
+	 */
+	public boolean isReady() {
+<span class="fc" id="L136">		int count = 0;</span>
+<span class="fc bfc" id="L137" title="All 2 branches covered.">		for (int i = 0; i &lt; Constant.ROOM_LIMIT; i++) {</span>
+<span class="fc bfc" id="L138" title="All 2 branches covered.">			if (status[i] == READY) {</span>
+<span class="fc" id="L139">				count++;</span>
+			}
+<span class="fc bfc" id="L141" title="All 2 branches covered.">			if (status[i] == UNREADY) {</span>
+<span class="fc" id="L142">				return false;</span>
+			}
+		}
+<span class="fc bfc" id="L145" title="All 2 branches covered.">		return count &gt; 1;</span>
+	}
+
+	/**.
+	 * 获取房间的状态
+	 */
+	public int getStage() {
+<span class="fc" id="L152">		return stage;</span>
+	}
+
+	/**.
+	 * 设置房间的状态
+	 */
+	public void setStage(int _stage) {
+<span class="fc" id="L159">		stage = _stage;</span>
+<span class="fc" id="L160">	}</span>
+
+	/**.
+	 * 获取pos号位置用户的key
+	 */
+	String getKey(int pos) throws Exception {
+<span class="fc" id="L166">		return key[pos];</span>
+	}
+
+	/**.
+	 * 设置pos号位置用户的key
+	 */
+	public void setKey(int pos, String _key) throws Exception {
+<span class="fc" id="L173">		key[pos] = _key;</span>
+<span class="fc" id="L174">	}</span>
+
+	/**.
+	 * 获取pos号位置用户的ip
+	 */
+	String getIp(int pos) throws Exception {
+<span class="fc" id="L180">		return ip[pos];</span>
+	}
+
+	/**.
+	 * 获取pos号位置用户的port
+	 */
+	int getPort(int pos) throws Exception {
+<span class="fc" id="L187">		return port[pos];</span>
+	}
+
+	/**.
+	 * 设置pos号位置用户的ip和port
+	 */
+	void setAddr(int pos, String _ip, int _port) throws Exception {
+<span class="fc" id="L194">		ip[pos] = _ip;</span>
+<span class="fc" id="L195">		port[pos] = _port;</span>
+<span class="fc" id="L196">	}</span>
+
+	/**.
+	 * 获取房间编号
+	 */
+	public int getNum() {
+<span class="fc" id="L202">		return num;</span>
+	}
+	
+	/**.
+	 * 添加聊天记录
+	 */
+	public void addMessage(int pos, String message) throws Exception
+	{
+<span class="fc" id="L210">		JSONObject m = new JSONObject();</span>
+<span class="fc" id="L211">		m.put(&quot;speaker&quot;, users[pos]);</span>
+<span class="fc" id="L212">		m.put(&quot;message&quot;, message);</span>
+<span class="fc bfc" id="L213" title="All 2 branches covered.">		for (int i=0; i&lt;msg.length; i++)</span>
+		{
+<span class="fc bfc" id="L215" title="All 2 branches covered.">			if (status[i] != EMPTY)</span>
+			{
+<span class="fc" id="L217">				msg[i].add(m);</span>
+			}
+		}
+<span class="fc" id="L220">	}</span>
+	
+	/**.
+	 * 获取聊天记录
+	 */
+	public JSONArray getMessages(int pos) throws Exception
+	{
+<span class="fc" id="L227">		JSONArray messages = msg[pos];</span>
+<span class="fc" id="L228">		msg[pos] = new JSONArray();</span>
+<span class="fc" id="L229">		return messages;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.3.201306030806</span>HallInfoTest (2013-12-14 14:40:45)</div></body></html>

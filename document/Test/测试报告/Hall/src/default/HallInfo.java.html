@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>HallInfo.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">HallInfoTest (2013-12-14 14:40:45)</a> &gt; <a href="../../index.html" class="el_group">Hall</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.html" class="el_package">default</a> &gt; <span class="el_source">HallInfo.java</span></div><h1>HallInfo.java</h1><pre class="source lang-java linenums">import java.util.*;
+import java.io.*;
+import java.net.*;
+import net.sf.json.*;
+
+/**.
+ * 游戏大厅类。由于只有一个大厅，所以它是单件模式。
+ */
+public class HallInfo {
+	/**.
+	 * 该大厅内的房间。
+	 */	
+	private Room rooms[];
+
+	/**.
+	 * 该大厅内的用户以及他们的信息。
+	 * 格式为：{&quot;username1&quot;:{...}, &quot;username2&quot;:{...}}
+	 * 其中省略部分为一个用户的信息，包括：
+	 * 		int room 			表示所在房间号，-1表示不在房间中
+	 * 		int pos   			表示所在座位号，-1表示不在座位中
+	 * 		String ready		表示当前是否准备，只可能是&quot;ready&quot; 或 &quot;unready&quot;
+	 * 		JSONObject details	表示用户资料
+	 * 之后再提到用户信息，请参考这个说明
+	 */	
+	private JSONObject users;
+
+	/**.
+	 * 该大厅内的玩家操作记录，包括进入/离开大厅，进入/离开房间，准备/取消准备。
+	 * 大厅内的事件从0开始顺序编号，事件编号对应着事件在events中的下标。事件的编号在后面还会用到。
+	 */	
+	private JSONArray events;
+
+	/**.
+	 * 大厅的构造函数，主要任务是为每个房间创造实例。
+	 */
+<span class="fc" id="L36">	private HallInfo() {</span>
+<span class="fc" id="L37">		events = new JSONArray();</span>
+<span class="fc" id="L38">		users = new JSONObject();</span>
+<span class="fc" id="L39">		rooms = new Room[Constant.HALL_LIMIT];</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">		for (int i = 0; i &lt; rooms.length; i++) {</span>
+<span class="fc" id="L41">			rooms[i] = new Room(i);</span>
+		}		
+<span class="fc" id="L43">	}</span>
+	
+<span class="fc" id="L45">	private static HallInfo hall = null;</span>
+
+	public static HallInfo getInstance() {
+<span class="fc bfc" id="L48" title="All 2 branches covered.">		if (hall == null) {</span>
+<span class="fc" id="L49">			hall = new HallInfo();</span>
+		}
+<span class="fc" id="L51">		return hall;</span>
+	}
+
+	public static void clear()
+	{
+<span class="fc bfc" id="L56" title="All 2 branches covered.">		if (hall != null)</span>
+<span class="fc" id="L57">			hall = new HallInfo();</span>
+<span class="fc" id="L58">	}</span>
+
+	/**.
+	 * 通过该函数，可以得到大厅当前的状态。
+	 * 返回的字典包括：
+	 * 		1）users  大厅内所有用户的信息
+	 * 		2）rooms  大厅内所有房间是否开始游戏
+	 * 		3）count  截止到现在，大厅内发生过的事件数量
+	 */
+	public JSONObject getStatus() throws Exception {
+<span class="pc" id="L68">		synchronized (this) {</span>
+<span class="fc" id="L69">			JSONObject ans = new JSONObject();</span>
+<span class="fc" id="L70">			ans.put(&quot;users&quot;, users);</span>
+<span class="fc" id="L71">			ans.put(&quot;rooms&quot;, getRoomStage());</span>
+<span class="fc" id="L72">			ans.put(&quot;count&quot;, events.size());</span>
+<span class="fc" id="L73">			return ans;</span>
+		}
+	}
+
+	/**.
+	 * 通过该函数，可以得到最近一段时间大厅发生的变化。
+	 * 返回的字典包括：
+	 * 		1）events 编号从now开始到现在为止大厅内发生的事件。
+	 * 		2）rooms  大厅内所有房间是否开始游戏
+	 * 		3）count  截止到现在，大厅内发生过的事件数量
+	 */
+	public JSONObject getEvents(int now) throws Exception {
+<span class="pc" id="L85">		synchronized (this) {</span>
+<span class="fc" id="L86">			int n = events.size();</span>
+<span class="fc" id="L87">			JSONArray result = new JSONArray();</span>
+<span class="fc bfc" id="L88" title="All 2 branches covered.">			for (int i = now; i &lt; n; i++) {</span>
+<span class="fc" id="L89">				result.add(events.getJSONObject(i));</span>
+			}
+<span class="fc" id="L91">			JSONObject ans = new JSONObject();</span>
+<span class="fc" id="L92">			ans.put(&quot;count&quot;, n);</span>
+<span class="fc" id="L93">			ans.put(&quot;events&quot;, result);</span>
+<span class="fc" id="L94">			ans.put(&quot;rooms&quot;, getRoomStage());</span>
+<span class="fc" id="L95">			return ans;</span>
+		}
+	}
+
+	/**.
+	 * 通过该函数，可以得到一个用户的信息。传入参数user为该用户的用户名。
+	 */	
+	public JSONObject getDetails(String user) throws Exception {
+<span class="fc" id="L103">		synchronized (this) {</span>
+<span class="fc" id="L104">			return users.getJSONObject(user).getJSONObject(&quot;details&quot;);</span>
+		}
+	}
+	
+	/**.
+	 * 通过这个函数，获取一个用户最近的聊天信息
+	 */	
+	public JSONArray getMessages(String user) throws Exception{
+<span class="fc bfc" id="L112" title="All 2 branches covered.">		if (!users.has(user)) {</span>
+<span class="fc" id="L113">			return new JSONArray();</span>
+		}
+		
+<span class="fc" id="L116">		int room = users.getJSONObject(user).getInt(&quot;room&quot;);</span>
+<span class="fc" id="L117">		int pos = users.getJSONObject(user).getInt(&quot;pos&quot;);</span>
+<span class="fc bfc" id="L118" title="All 2 branches covered.">		if (room &gt; -1) {</span>
+<span class="pc" id="L119">			synchronized (this){</span>
+<span class="fc" id="L120">				return rooms[room].getMessages(pos);</span>
+			}
+		} else {
+<span class="fc" id="L123">			return new JSONArray();</span>
+		}
+	}	
+
+	/**.
+	 * 通过该函数，可以执行一个用户的操作。传入的字典query必须包含type和user，表示用户和操作种类。
+	 * 操作种类包括：
+	 * 		1）login  	表示进入大厅，需要同时传入details
+	 * 		2）enter  	表示进入房间，需要同时传入room与pos表示房间号和座位号
+	 * 		3）leave  	表示离开房间
+	 * 		4）ready  	表示准备
+	 * 		5）unready 	表示取消准备
+	 * 		6）message	表示在房间中说一句话，需要同时传入message
+	 * 对于每个操作：
+	 * 		1） 若格式非法，则会抛出异常
+	 * 		2） 若格式合法，但操作行为不合法（例如不在房间但要求离开房间），则什么都不会做，并返回false
+	 * 		3） 若格式合法，行为也合法，则会进行该操作，并返回true
+	 */	
+	public boolean execute(JSONObject query) throws Exception {
+<span class="fc" id="L142">		synchronized (this) {</span>
+<span class="fc" id="L143">			String type = query.getString(&quot;type&quot;);</span>
+<span class="fc" id="L144">			String user = query.getString(&quot;user&quot;);</span>
+						
+<span class="fc bfc" id="L146" title="All 2 branches covered.">			if (type.equals(&quot;login&quot;)) {</span>
+<span class="fc bfc" id="L147" title="All 2 branches covered.">				if (!query.has(&quot;details&quot;)) throw new Exception();</span>
+				
+<span class="fc bfc" id="L149" title="All 2 branches covered.">				if (!users.has(user)) {</span>
+<span class="fc" id="L150">					users.put(user, newUser(query.getJSONObject(&quot;details&quot;)));</span>
+<span class="fc" id="L151">					events.add(query);</span>
+<span class="fc" id="L152">					return true;</span>
+				} else {
+<span class="fc" id="L154">					return false;</span>
+				}
+			}
+			
+<span class="fc bfc" id="L158" title="All 2 branches covered.">			if (!users.has(user)) return false;</span>
+<span class="fc" id="L159">			JSONObject userData = users.getJSONObject(user);</span>
+
+<span class="fc bfc" id="L161" title="All 2 branches covered.">			if (type.equals(&quot;enter&quot;)) {</span>
+<span class="fc" id="L162">				int room = query.getInt(&quot;room&quot;);</span>
+<span class="fc" id="L163">				int pos = query.getInt(&quot;pos&quot;);</span>
+
+<span class="fc bfc" id="L165" title="All 2 branches covered.">				if (room == 999) {</span>
+<span class="pc bpc" id="L166" title="1 of 2 branches missed.">					for (int i = 0; i &lt; rooms.length; i++)</span>
+<span class="fc bfc" id="L167" title="All 2 branches covered.">						if (rooms[i].getEmpty() &gt; -1) {</span>
+<span class="fc" id="L168">							room = i;</span>
+<span class="fc" id="L169">							pos = rooms[i].getEmpty();</span>
+<span class="fc" id="L170">							break;</span>
+						}
+				}
+<span class="fc bfc" id="L173" title="All 4 branches covered.">				if (room &gt;= Constant.HALL_LIMIT || room &lt; 0) {</span>
+<span class="fc" id="L174">					return false;</span>
+				}
+
+<span class="fc bfc" id="L177" title="All 2 branches covered.">				if (pos == 999)</span>
+<span class="fc" id="L178">					pos = rooms[room].getEmpty();</span>
+<span class="fc bfc" id="L179" title="All 4 branches covered.">				if (pos &gt;= Constant.ROOM_LIMIT || pos &lt; 0) {</span>
+<span class="fc" id="L180">					return false;</span>
+				}
+				
+<span class="pc bpc" id="L183" title="1 of 6 branches missed.">				if (userData.getInt(&quot;room&quot;) == -1 &amp;&amp; rooms[room].getStatus(pos) == Room.EMPTY &amp;&amp; rooms[room].getStage() == Room.WAITING)</span>
+				{
+<span class="fc" id="L185">					userData.put(&quot;room&quot;, room);</span>
+<span class="fc" id="L186">					userData.put(&quot;pos&quot;, pos);</span>
+<span class="fc" id="L187">					rooms[room].enter(pos, user);</span>
+<span class="fc" id="L188">					query.put(&quot;room&quot;, room);</span>
+<span class="fc" id="L189">					query.put(&quot;pos&quot;, pos);</span>
+<span class="fc" id="L190">					events.add(query);</span>
+<span class="fc" id="L191">					return true;</span>
+				} else {
+<span class="fc" id="L193">					return false;</span>
+				}
+			}
+
+<span class="fc" id="L197">			int room = userData.getInt(&quot;room&quot;);</span>
+<span class="fc" id="L198">			int pos = userData.getInt(&quot;pos&quot;);</span>
+<span class="fc bfc" id="L199" title="All 2 branches covered.">			if (room == -1) {</span>
+<span class="fc" id="L200">				return false;</span>
+			}
+
+<span class="fc" id="L203">			Room userRoom = rooms[room];</span>
+
+<span class="fc bfc" id="L205" title="All 2 branches covered.">			if (type.equals(&quot;message&quot;)) {</span>
+<span class="fc bfc" id="L206" title="All 2 branches covered.">				if (!query.has(&quot;message&quot;)) throw new Exception();</span>
+<span class="fc" id="L207">				String message = query.getString(&quot;message&quot;);</span>
+<span class="fc" id="L208">				userRoom.addMessage(pos, message);</span>
+<span class="fc" id="L209">				return true;</span>
+			}
+
+<span class="fc bfc" id="L212" title="All 2 branches covered.">			if (type.equals(&quot;leave&quot;)) {</span>
+<span class="fc" id="L213">				userData.put(&quot;room&quot;, -1);</span>
+<span class="fc" id="L214">				userData.put(&quot;pos&quot;, -1);</span>
+<span class="fc" id="L215">				userData.put(&quot;ready&quot;, &quot;unready&quot;);					</span>
+<span class="fc" id="L216">				userRoom.leave(pos);</span>
+<span class="fc" id="L217">				events.add(query);</span>
+<span class="fc" id="L218">				return true;</span>
+			}
+
+<span class="fc bfc" id="L221" title="All 2 branches covered.">			if (type.equals(&quot;ready&quot;)) {</span>
+<span class="fc bfc" id="L222" title="All 2 branches covered.">				if (userRoom.getStatus(pos) == Room.UNREADY) {</span>
+<span class="fc" id="L223">					userData.put(&quot;ready&quot;, &quot;ready&quot;);</span>
+<span class="fc" id="L224">					userRoom.ready(pos);</span>
+<span class="fc" id="L225">					events.add(query);</span>
+<span class="fc bfc" id="L226" title="All 2 branches covered.">					if (userRoom.isReady()) {</span>
+<span class="fc" id="L227">						start(userRoom);</span>
+					}
+<span class="fc" id="L229">					return true;</span>
+				} else {
+<span class="fc" id="L231">					return false;</span>
+				}
+			}
+
+<span class="fc bfc" id="L235" title="All 2 branches covered.">			if (type.equals(&quot;unready&quot;)) {</span>
+<span class="fc bfc" id="L236" title="All 2 branches covered.">				if (userRoom.getStatus(pos) == Room.READY) {</span>
+<span class="fc" id="L237">					userData.put(&quot;ready&quot;, &quot;unready&quot;);</span>
+<span class="fc" id="L238">					userRoom.unready(pos);</span>
+<span class="fc" id="L239">					events.add(query);</span>
+<span class="fc" id="L240">					return true;</span>
+				} else {
+<span class="fc" id="L242">					return false;</span>
+				}
+			}
+			
+<span class="fc" id="L246">			return false;</span>
+		}
+	}	
+
+	/**.
+	 * 通过该函数，执行一个用户离开大厅的操作。
+	 */	
+	public boolean logout(String user) throws Exception {
+<span class="pc" id="L254">		synchronized (this) {</span>
+<span class="fc bfc" id="L255" title="All 2 branches covered.">			if (users.has(user)) {</span>
+<span class="fc" id="L256">				JSONObject data = users.getJSONObject(user);</span>
+<span class="fc" id="L257">				int room = data.getInt(&quot;room&quot;);</span>
+<span class="fc" id="L258">				int pos = data.getInt(&quot;pos&quot;);</span>
+<span class="fc bfc" id="L259" title="All 2 branches covered.">				if (room &gt; -1) {</span>
+<span class="fc" id="L260">					rooms[room].leave(pos);</span>
+				}
+<span class="fc" id="L262">				users.remove(user);</span>
+<span class="fc" id="L263">				JSONObject query = new JSONObject();</span>
+<span class="fc" id="L264">				query.put(&quot;user&quot;, user);</span>
+<span class="fc" id="L265">				query.put(&quot;type&quot;, &quot;logout&quot;);</span>
+<span class="fc" id="L266">				events.add(query);</span>
+<span class="fc" id="L267">				return true;</span>
+			} else {
+<span class="fc" id="L269">				return false;</span>
+			}
+		}
+	}
+	
+	/**.
+	 * 通过这个函数，设置一局游戏开始的信息
+	 */	
+	public void setGameStartInfo(int id, JSONArray infos) throws Exception {
+<span class="fc" id="L278">		JSONObject data = new JSONObject();</span>
+<span class="fc bfc" id="L279" title="All 2 branches covered.">		for (int i = 0; i &lt; infos.size(); i++) {</span>
+<span class="fc" id="L280">			JSONObject info = infos.getJSONObject(i);</span>
+<span class="fc" id="L281">			data.put(info.getString(&quot;user&quot;), info);</span>
+		}
+<span class="pc" id="L283">		synchronized (this) {</span>
+<span class="fc" id="L284">			Room room = rooms[id];</span>
+<span class="pc bpc" id="L285" title="1 of 2 branches missed.">			if (room.getStage() == Room.ALLREADY) {</span>
+<span class="fc bfc" id="L286" title="All 2 branches covered.">				for (int i = 0; i &lt; Constant.ROOM_LIMIT; i++) {</span>
+<span class="fc bfc" id="L287" title="All 2 branches covered.">					if (room.getStatus(i) != Room.EMPTY) {</span>
+<span class="fc" id="L288">						String user = room.getUser(i);</span>
+<span class="fc" id="L289">						room.setAddr(i, data.getJSONObject(user).getString(&quot;ip&quot;), data.getJSONObject(user).getInt(&quot;port&quot;));</span>
+					}
+				}
+<span class="fc" id="L292">				room.setStage(Room.PLAYING);</span>
+			}
+		}
+<span class="fc" id="L295">	}</span>
+
+	/**.
+	 * 通过这个函数，查询一个用户是否开始游戏
+	 */	
+	public JSONObject getGameStartInfo(String user) throws Exception {
+<span class="pc" id="L301">		synchronized (this) {</span>
+<span class="fc bfc" id="L302" title="All 2 branches covered.">			if (!users.has(user)) {</span>
+<span class="fc" id="L303">				return null;</span>
+			}
+<span class="fc" id="L305">			int room = users.getJSONObject(user).getInt(&quot;room&quot;);</span>
+<span class="fc" id="L306">			int pos = users.getJSONObject(user).getInt(&quot;pos&quot;);</span>
+<span class="fc bfc" id="L307" title="All 2 branches covered.">			if (room &gt; -1) {</span>
+<span class="fc" id="L308">				Room userRoom = rooms[room];</span>
+<span class="pc bpc" id="L309" title="1 of 4 branches missed.">				if (userRoom.getStage() == Room.PLAYING &amp;&amp; userRoom.getStatus(pos) == Room.READY) {</span>
+<span class="fc" id="L310">					userRoom.unready(pos);</span>
+					
+<span class="fc" id="L312">					JSONObject result = new JSONObject();</span>
+<span class="fc" id="L313">					result.put(&quot;key&quot;, userRoom.getKey(pos));</span>
+<span class="fc" id="L314">					result.put(&quot;ip&quot;, userRoom.getIp(pos));</span>
+<span class="fc" id="L315">					result.put(&quot;port&quot;, userRoom.getPort(pos));</span>
+<span class="fc" id="L316">					return result;</span>
+				}				
+			}
+		}
+<span class="fc" id="L320">		return null;</span>
+	}
+
+	/**.
+	 * 通过这个函数，设置一局游戏结束的信息
+	 */	
+	public void setGameFinishedInfo(int id, JSONArray infos) throws Exception {
+<span class="fc" id="L327">		Room room = rooms[id];</span>
+<span class="pc bpc" id="L328" title="1 of 2 branches missed.">		if (room.getStage() == Room.PLAYING) {</span>
+<span class="fc" id="L329">			room.setStage(Room.WAITING);</span>
+<span class="fc bfc" id="L330" title="All 2 branches covered.">			for (int i = 0; i &lt; infos.size(); i++) {</span>
+<span class="fc" id="L331">				JSONObject info = infos.getJSONObject(i);</span>
+<span class="fc" id="L332">				String user = info.getString(&quot;user&quot;);</span>
+<span class="fc" id="L333">				String result = info.getString(&quot;result&quot;);</span>
+<span class="pc" id="L334">				synchronized(this) {</span>
+<span class="pc bpc" id="L335" title="1 of 2 branches missed.">			        if (users.has(user)) {</span>
+<span class="fc" id="L336">		        		JSONObject userInfo = users.getJSONObject(user);</span>
+<span class="fc" id="L337">	        			userInfo.put(&quot;ready&quot;, &quot;unready&quot;);</span>
+<span class="fc" id="L338">        				JSONObject details = userInfo.getJSONObject(&quot;details&quot;);</span>
+<span class="fc" id="L339">    					details.put(&quot;exp&quot;, Constant.getExp(details.getInt(&quot;exp&quot;), result));</span>
+<span class="fc" id="L340">				        details.put(&quot;level&quot;, Constant.getLevel(details.getInt(&quot;exp&quot;)));</span>
+<span class="fc bfc" id="L341" title="All 2 branches covered.">			        	if (result.equals(&quot;win&quot;)) {</span>
+<span class="fc" id="L342">		        			details.put(&quot;success&quot;, details.getInt(&quot;success&quot;) + 1);</span>
+	        			}
+<span class="fc bfc" id="L344" title="All 2 branches covered.">        				if (result.equals(&quot;lose&quot;)) {</span>
+<span class="fc" id="L345">					        details.put(&quot;fail&quot;, details.getInt(&quot;fail&quot;) + 1);</span>
+				        }
+<span class="fc bfc" id="L347" title="All 2 branches covered.">			        	if (result.equals(&quot;break&quot;)) {</span>
+<span class="fc" id="L348">					        details.put(&quot;break&quot;, details.getInt(&quot;break&quot;) + 1);</span>
+				        }
+						//JSONObject unready = new JSONObject();
+						//unready.put(&quot;user&quot;, user);
+						//unready.put(&quot;type&quot;, &quot;unready&quot;);
+						//events.add(unready);
+
+<span class="fc" id="L355">						JSONObject refresh = new JSONObject();</span>
+<span class="fc" id="L356">						refresh.put(&quot;user&quot;, user);</span>
+<span class="fc" id="L357">						refresh.put(&quot;type&quot;, &quot;refresh&quot;);</span>
+<span class="fc" id="L358">						refresh.put(&quot;details&quot;, details);</span>
+<span class="fc" id="L359">				        events.add(refresh);</span>
+			        }
+		        }
+			}
+		}
+<span class="fc" id="L364">	}</span>
+		
+	private void start(Room room) throws Exception {
+<span class="fc" id="L367">		room.setStage(Room.ALLREADY);</span>
+
+<span class="fc" id="L369">		JSONArray infos = new JSONArray();</span>
+<span class="fc bfc" id="L370" title="All 2 branches covered.">		for (int i = 0; i &lt; Constant.ROOM_LIMIT; i++) {</span>
+<span class="fc bfc" id="L371" title="All 2 branches covered.">			if (room.getStatus(i) != Room.EMPTY) {</span>
+<span class="fc" id="L372">				String user = room.getUser(i);</span>
+<span class="fc" id="L373">				String key = Constant.getKey();</span>
+<span class="fc" id="L374">				room.setKey(i, key);</span>
+<span class="fc" id="L375">				JSONObject details = users.getJSONObject(user).getJSONObject(&quot;details&quot;);</span>
+
+<span class="fc" id="L377">				JSONObject info = new JSONObject();</span>
+<span class="fc" id="L378">				info.put(&quot;user&quot;, user);</span>
+<span class="fc" id="L379">				info.put(&quot;key&quot;, key);</span>
+<span class="fc" id="L380">				info.put(&quot;details&quot;, details);</span>
+<span class="fc" id="L381">				infos.add(info);</span>
+			}
+		}
+<span class="fc" id="L384">		JSONObject data = new JSONObject();</span>
+<span class="fc" id="L385">		data.put(&quot;type&quot;, &quot;ready&quot;);</span>
+<span class="fc" id="L386">		data.put(&quot;id&quot;, room.getNum());</span>
+<span class="fc" id="L387">		data.put(&quot;users&quot;, infos);</span>
+		
+<span class="fc" id="L389">		GameTalk gameTalk = GameTalk.getInstance();</span>
+<span class="pc bpc" id="L390" title="1 of 2 branches missed.">		if (gameTalk == null) {</span>
+<span class="fc" id="L391">			Log.log(&quot;Not find GameServer!&quot;);</span>
+<span class="fc" id="L392">		} else {</span>
+<span class="nc" id="L393">			gameTalk.send(data.toString());</span>
+		}
+<span class="fc" id="L395">	}</span>
+	
+	private JSONObject newUser(JSONObject details) {
+<span class="fc" id="L398">		JSONObject data = new JSONObject();</span>
+<span class="fc" id="L399">		data.put(&quot;room&quot;, -1);</span>
+<span class="fc" id="L400">		data.put(&quot;pos&quot;, -1);</span>
+<span class="fc" id="L401">		data.put(&quot;ready&quot;, &quot;unready&quot;);</span>
+<span class="fc" id="L402">		data.put(&quot;details&quot;, details);</span>
+<span class="fc" id="L403">		return data;</span>
+	}
+
+	private JSONArray getRoomStage() {
+<span class="fc" id="L407">		JSONArray stages = new JSONArray();</span>
+<span class="fc bfc" id="L408" title="All 2 branches covered.">		for (int i = 0; i &lt; rooms.length; i++) {</span>
+<span class="fc" id="L409">			int stage = rooms[i].getStage();</span>
+<span class="fc bfc" id="L410" title="All 2 branches covered.">			if (stage == Room.WAITING) {</span>
+<span class="fc" id="L411">				stages.add(0);</span>
+<span class="fc" id="L412">			} else {</span>
+<span class="fc" id="L413">				stages.add(1);</span>
+			}
+		}
+<span class="fc" id="L416">		return stages;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.3.201306030806</span>HallInfoTest (2013-12-14 14:40:45)</div></body></html>

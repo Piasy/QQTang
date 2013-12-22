@@ -1,0 +1,861 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>HallInfoTest.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">HallInfoTest (2013-12-14 14:40:45)</a> &gt; <a href="../../index.html" class="el_group">Hall</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.html" class="el_package">default</a> &gt; <span class="el_source">HallInfoTest.java</span></div><h1>HallInfoTest.java</h1><pre class="source lang-java linenums">import static org.junit.Assert.*;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.*;
+import java.io.*;
+import java.net.*;
+
+import net.sf.json.*;
+
+
+<span class="fc" id="L13">public class HallInfoTest {</span>
+
+	/**.
+	 * 测试获取实例函数
+	 * 应返回一个非空值
+	 */
+	@Test
+	public void testGetInstance() {
+<span class="fc" id="L21">		HallInfo hall = HallInfo.getInstance();</span>
+<span class="pc bpc" id="L22" title="1 of 2 branches missed.">		assertEquals(hall == null, false);</span>
+<span class="fc" id="L23">	}</span>
+	
+	/**.
+	 * 测试进入大厅函数
+	 * 数据合法
+	 * 应返回true
+	 */
+	@Test
+	public void testExecuteLoginSuccess() {
+<span class="fc" id="L32">		HallInfo.clear();</span>
+<span class="fc" id="L33">		HallInfo hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L35">			boolean flag = hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L36">			assertEquals(flag, true);</span>
+<span class="pc" id="L37">		} catch (Exception e) {</span>
+<span class="nc" id="L38">			fail();</span>
+		}
+<span class="fc" id="L40">	}</span>
+
+	/**.
+	 * 测试进入大厅函数
+	 * 数据格式不合法
+	 * 应抛出异常
+	 */
+	@Test
+	public void testExecuteLoginException() {
+<span class="fc" id="L49">		HallInfo.clear();</span>
+<span class="fc" id="L50">		HallInfo hall = HallInfo.getInstance();</span>
+		try {
+<span class="nc" id="L52">			boolean flag = hall.execute(getWrongLoginData(&quot;testname&quot;));</span>
+<span class="nc" id="L53">			fail();</span>
+<span class="pc" id="L54">		} catch (Exception e) {</span>
+		}
+<span class="fc" id="L56">	}	</span>
+
+	/**.
+	 * 测试进入大厅函数
+	 * 数据格式合法但内容不合法。本测例中，进入大厅的用户是原先大厅中存在的用户
+	 * 应返回false
+	 */
+	@Test
+	public void testExecuteLoginFail() {
+<span class="fc" id="L65">		HallInfo.clear();</span>
+<span class="fc" id="L66">		HallInfo hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L68">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L69">			boolean flag = hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L70">			assertEquals(flag, false);</span>
+<span class="pc" id="L71">		} catch (Exception e) {</span>
+<span class="nc" id="L72">			fail();</span>
+		}
+<span class="fc" id="L74">	}	</span>
+	
+	
+	/**.
+	 * 测试进入房间函数
+	 * 数据合法，包含3个测例：
+	 * 		1、普通进入，指定房间和座位
+	 * 		2、随机房间随机座位
+	 * 		3、指定房间随机座位
+	 * 应返回true
+	 */
+	@Test
+	public void testExecuteEnterSuccess() {
+<span class="fc" id="L87">		HallInfo.clear();</span>
+<span class="fc" id="L88">		HallInfo hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L90">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L91">			boolean flag = hall.execute(getCorrectEnterData(&quot;testname&quot;, 1, 1));</span>
+<span class="fc" id="L92">			assertEquals(flag, true);</span>
+<span class="pc" id="L93">		} catch (Exception e) {</span>
+<span class="nc" id="L94">			fail();			</span>
+		}
+		
+<span class="fc" id="L97">		HallInfo.clear();</span>
+<span class="fc" id="L98">		hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L100">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L101">			boolean flag = hall.execute(getCorrectEnterData(&quot;testname&quot;, 999, 999));</span>
+<span class="fc" id="L102">			assertEquals(flag, true);</span>
+<span class="pc" id="L103">		} catch (Exception e) {</span>
+<span class="nc" id="L104">			fail();			</span>
+		}
+
+<span class="fc" id="L107">		HallInfo.clear();</span>
+<span class="fc" id="L108">		hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L110">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L111">			boolean flag = hall.execute(getCorrectEnterData(&quot;testname&quot;, 1, 999));</span>
+<span class="fc" id="L112">			assertEquals(flag, true);</span>
+<span class="pc" id="L113">		} catch (Exception e) {</span>
+<span class="nc" id="L114">			fail();			</span>
+		}
+		
+<span class="fc" id="L117">		HallInfo.clear();</span>
+<span class="fc" id="L118">		hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L120">			hall.execute(getCorrectLoginData(&quot;testname1&quot;));</span>
+<span class="fc" id="L121">			hall.execute(getCorrectEnterData(&quot;testname1&quot;, 0, 0));</span>
+<span class="fc" id="L122">			hall.execute(getCorrectLoginData(&quot;testname2&quot;));</span>
+<span class="fc" id="L123">			hall.execute(getCorrectEnterData(&quot;testname2&quot;, 0, 1));</span>
+<span class="fc" id="L124">			hall.execute(getCorrectLoginData(&quot;testname3&quot;));</span>
+<span class="fc" id="L125">			hall.execute(getCorrectEnterData(&quot;testname3&quot;, 0, 2));</span>
+<span class="fc" id="L126">			hall.execute(getCorrectLoginData(&quot;testname4&quot;));</span>
+<span class="fc" id="L127">			hall.execute(getCorrectEnterData(&quot;testname4&quot;, 0, 3));</span>
+<span class="fc" id="L128">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L129">			boolean flag = hall.execute(getCorrectEnterData(&quot;testname&quot;, 999, 999));</span>
+<span class="fc" id="L130">			assertEquals(flag, true);</span>
+<span class="pc" id="L131">		} catch (Exception e) {</span>
+<span class="nc" id="L132">			fail();			</span>
+		}
+<span class="fc" id="L134">	}</span>
+	
+	
+	/**.
+	 * 测试进入房间函数
+	 * 测试数据格式合法但内容不合法，包含以下几个测例：
+	 * 		1、用户不在大厅
+	 * 		2、用户已经在房间中
+	 * 		3、进入房间下标向上溢出
+	 * 		4、进入房间下标向下溢出
+	 * 		5、进入座位下标向上溢出
+	 * 		6、进入座位下标向下溢出
+	 * 		7、该座位已经有人
+	 * 		8、进入指定房间随机座位，但该房间已满
+	 * 应返回false
+	 */
+	@Test
+	public void testExecuteEnterFail() {
+<span class="fc" id="L152">		HallInfo.clear();</span>
+<span class="fc" id="L153">		HallInfo hall = HallInfo.getInstance();</span>
+
+		try {
+<span class="fc" id="L156">			boolean flag = hall.execute(getCorrectEnterData(&quot;testname&quot;, 1, 1));</span>
+<span class="fc" id="L157">			assertEquals(flag, false);</span>
+<span class="pc" id="L158">		} catch (Exception e) {</span>
+<span class="nc" id="L159">			fail();			</span>
+		}
+	
+<span class="fc" id="L162">		HallInfo.clear();</span>
+<span class="fc" id="L163">		hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L165">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L166">			hall.execute(getCorrectEnterData(&quot;testname&quot;, 1, 1));</span>
+<span class="fc" id="L167">			boolean flag = hall.execute(getCorrectEnterData(&quot;testname&quot;, 1, 1));</span>
+<span class="fc" id="L168">			assertEquals(flag, false);</span>
+<span class="pc" id="L169">		} catch (Exception e) {</span>
+<span class="nc" id="L170">			fail();			</span>
+		}
+		
+<span class="fc" id="L173">		HallInfo.clear();</span>
+<span class="fc" id="L174">		hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L176">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L177">			boolean flag = hall.execute(getCorrectEnterData(&quot;testname&quot;, 101, 1));</span>
+<span class="fc" id="L178">			assertEquals(flag, false);</span>
+<span class="pc" id="L179">		} catch (Exception e) {</span>
+<span class="nc" id="L180">			fail();			</span>
+		}
+
+<span class="fc" id="L183">		HallInfo.clear();</span>
+<span class="fc" id="L184">		hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L186">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L187">			boolean flag = hall.execute(getCorrectEnterData(&quot;testname&quot;, -10, 1));</span>
+<span class="fc" id="L188">			assertEquals(flag, false);</span>
+<span class="pc" id="L189">		} catch (Exception e) {</span>
+<span class="nc" id="L190">			fail();			</span>
+		}
+
+<span class="fc" id="L193">		HallInfo.clear();</span>
+<span class="fc" id="L194">		hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L196">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L197">			boolean flag = hall.execute(getCorrectEnterData(&quot;testname&quot;, 1, 4));</span>
+<span class="fc" id="L198">			assertEquals(flag, false);</span>
+<span class="pc" id="L199">		} catch (Exception e) {</span>
+<span class="nc" id="L200">			fail();			</span>
+		}
+		
+<span class="fc" id="L203">		HallInfo.clear();</span>
+<span class="fc" id="L204">		hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L206">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L207">			boolean flag = hall.execute(getCorrectEnterData(&quot;testname&quot;, 1, -1));</span>
+<span class="fc" id="L208">			assertEquals(flag, false);</span>
+<span class="pc" id="L209">		} catch (Exception e) {</span>
+<span class="nc" id="L210">			fail();			</span>
+		}
+
+<span class="fc" id="L213">		HallInfo.clear();</span>
+<span class="fc" id="L214">		hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L216">			hall.execute(getCorrectLoginData(&quot;testname1&quot;));</span>
+<span class="fc" id="L217">			hall.execute(getCorrectLoginData(&quot;testname2&quot;));</span>
+<span class="fc" id="L218">			hall.execute(getCorrectEnterData(&quot;testname1&quot;, 1, 1));</span>
+<span class="fc" id="L219">			boolean flag = hall.execute(getCorrectEnterData(&quot;testname2&quot;, 1, 1));</span>
+<span class="fc" id="L220">			assertEquals(flag, false);</span>
+<span class="pc" id="L221">		} catch (Exception e) {</span>
+<span class="nc" id="L222">			fail();			</span>
+		}
+<span class="fc" id="L224">	}</span>
+	
+	/**.
+	 * 测试进入房间函数
+	 * 测试数据格式不合法，没有room和pos
+	 * 应抛出异常
+	 */
+	@Test
+	public void testExecuteEnterException() {
+<span class="fc" id="L233">		HallInfo.clear();</span>
+<span class="fc" id="L234">		HallInfo hall = HallInfo.getInstance();</span>
+
+		try {
+<span class="fc" id="L237">			boolean flag = hall.execute(getWrongEnterData(&quot;testname&quot;));</span>
+<span class="fc" id="L238">			assertEquals(flag, false);</span>
+<span class="pc" id="L239">		} catch (Exception e) {</span>
+<span class="nc" id="L240">			fail();			</span>
+		}
+<span class="fc" id="L242">	}</span>
+
+	/**.
+	 * 测试离开房间函数
+	 * 测试数据合法
+	 * 应返回true
+	 */
+	@Test
+	public void testExecuteLeaveSuccess() {
+<span class="fc" id="L251">		HallInfo.clear();</span>
+<span class="fc" id="L252">		HallInfo hall = HallInfo.getInstance();</span>
+
+		try {
+<span class="fc" id="L255">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L256">			hall.execute(getCorrectEnterData(&quot;testname&quot;, 1, 1));</span>
+<span class="fc" id="L257">			boolean flag = hall.execute(getCorrectLeaveData(&quot;testname&quot;));</span>
+<span class="fc" id="L258">			assertEquals(flag, true);</span>
+<span class="pc" id="L259">		} catch (Exception e) {</span>
+<span class="nc" id="L260">			fail();			</span>
+		}
+<span class="fc" id="L262">	}</span>
+
+	/**.
+	 * 测试离开房间函数
+	 * 测试数据格式合法但内容不合法，包含以下几个测例：
+	 * 		1、用户不在大厅中
+	 * 		2、用户在大厅中但不在房间中
+	 * 应返回false
+	 */
+	@Test
+	public void testExecuteLeaveFail() {
+<span class="fc" id="L273">		HallInfo.clear();</span>
+<span class="fc" id="L274">		HallInfo hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L276">			boolean flag = hall.execute(getCorrectLeaveData(&quot;testname&quot;));</span>
+<span class="fc" id="L277">			assertEquals(flag, false);</span>
+<span class="pc" id="L278">		} catch (Exception e) {</span>
+<span class="nc" id="L279">			fail();</span>
+		}
+		
+<span class="fc" id="L282">		HallInfo.clear();</span>
+<span class="fc" id="L283">		hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L285">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L286">			boolean flag = hall.execute(getCorrectLeaveData(&quot;testname&quot;));</span>
+<span class="fc" id="L287">			assertEquals(flag, false);</span>
+<span class="pc" id="L288">		} catch (Exception e) {</span>
+<span class="nc" id="L289">			fail();</span>
+		}
+<span class="fc" id="L291">	}</span>
+	
+	/**.
+	 * 测试用户准备函数
+	 * 测试数据合法
+	 * 应返回true
+	 */
+	@Test
+	public void testExecuteReadySuccess() {
+<span class="fc" id="L300">		HallInfo.clear();</span>
+<span class="fc" id="L301">		HallInfo hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L303">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L304">			hall.execute(getCorrectEnterData(&quot;testname&quot;, 1, 1));</span>
+<span class="fc" id="L305">			boolean flag = hall.execute(getCorrectReadyData(&quot;testname&quot;));</span>
+<span class="fc" id="L306">			assertEquals(flag, true);</span>
+<span class="pc" id="L307">		} catch (Exception e) {</span>
+<span class="nc" id="L308">			fail();			</span>
+		}
+<span class="fc" id="L310">	}</span>
+
+	/**.
+	 * 测试用户准备函数
+	 * 测试数据格式合法但内容不合法，包含以下几个测例：
+	 * 		1、用户不在房间中
+	 * 		2、用户已经准备
+	 * 应返回false
+	 */
+	@Test
+	public void testExecuteReadyFail() {
+<span class="fc" id="L321">		HallInfo.clear();</span>
+<span class="fc" id="L322">		HallInfo hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L324">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L325">			boolean flag = hall.execute(getCorrectReadyData(&quot;testname&quot;));</span>
+<span class="fc" id="L326">			assertEquals(flag, false);</span>
+<span class="pc" id="L327">		} catch (Exception e) {</span>
+<span class="nc" id="L328">			fail();</span>
+		}
+		
+<span class="fc" id="L331">		HallInfo.clear();</span>
+<span class="fc" id="L332">		hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L334">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L335">			hall.execute(getCorrectEnterData(&quot;testname&quot;, 1, 1));</span>
+<span class="fc" id="L336">			hall.execute(getCorrectReadyData(&quot;testname&quot;));</span>
+<span class="fc" id="L337">			boolean flag = hall.execute(getCorrectReadyData(&quot;testname&quot;));</span>
+<span class="fc" id="L338">			assertEquals(flag, false);</span>
+<span class="pc" id="L339">		} catch (Exception e) {</span>
+<span class="nc" id="L340">			fail();</span>
+		}
+<span class="fc" id="L342">	}</span>
+	
+	/**.
+	 * 测试用户取消准备函数
+	 * 测试数据合法
+	 * 应返回true
+	 */
+	@Test
+	public void testExecuteUnreadySuccess() {
+<span class="fc" id="L351">		HallInfo.clear();</span>
+<span class="fc" id="L352">		HallInfo hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L354">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L355">			hall.execute(getCorrectEnterData(&quot;testname&quot;, 1, 1));</span>
+<span class="fc" id="L356">			hall.execute(getCorrectReadyData(&quot;testname&quot;));</span>
+<span class="fc" id="L357">			boolean flag = hall.execute(getCorrectUnreadyData(&quot;testname&quot;));</span>
+<span class="fc" id="L358">			assertEquals(flag, true);</span>
+<span class="pc" id="L359">		} catch (Exception e) {</span>
+<span class="nc" id="L360">			fail();			</span>
+		}
+<span class="fc" id="L362">	}</span>
+
+	/**.
+	 * 测试用户取消准备函数
+	 * 测试数据格式合法但内容不合法，包含以下几个测例：
+	 * 		1、用户不在房间中
+	 * 		2、用户还未准备
+	 * 应返回false
+	 */
+	@Test
+	public void testExecuteUnreadyFail() {
+<span class="fc" id="L373">		HallInfo.clear();</span>
+<span class="fc" id="L374">		HallInfo hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L376">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L377">			boolean flag = hall.execute(getCorrectUnreadyData(&quot;testname&quot;));</span>
+<span class="fc" id="L378">			assertEquals(flag, false);</span>
+<span class="pc" id="L379">		} catch (Exception e) {</span>
+<span class="nc" id="L380">			fail();</span>
+		}
+		
+<span class="fc" id="L383">		HallInfo.clear();</span>
+<span class="fc" id="L384">		hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L386">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L387">			hall.execute(getCorrectEnterData(&quot;testname&quot;, 1, 1));</span>
+<span class="fc" id="L388">			boolean flag = hall.execute(getCorrectUnreadyData(&quot;testname&quot;));</span>
+<span class="fc" id="L389">			assertEquals(flag, false);</span>
+<span class="pc" id="L390">		} catch (Exception e) {</span>
+<span class="nc" id="L391">			fail();</span>
+		}
+<span class="fc" id="L393">	}</span>
+	
+	/**.
+	 * 测试不合法的execute
+	 * 测试数据格式合法但内容不合法，包含以下几个测例：
+	 * 		1、用户不在房间中
+	 * 		2、用户还未准备
+	 * 应返回false
+	 */
+	@Test
+	public void testExecuteOthers() {
+<span class="fc" id="L404">		HallInfo.clear();</span>
+<span class="fc" id="L405">		HallInfo hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L407">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L408">			hall.execute(getCorrectEnterData(&quot;testname&quot;, 1, 1));</span>
+<span class="fc" id="L409">			boolean flag = hall.execute(getOtherData(&quot;testname&quot;));</span>
+<span class="fc" id="L410">			assertEquals(flag, false);</span>
+<span class="pc" id="L411">		} catch (Exception e) {</span>
+<span class="nc" id="L412">			fail();</span>
+		}
+<span class="fc" id="L414">	}	</span>
+	
+	/**.
+	 * 测试发送消息函数
+	 * 数据合法
+	 * 应返回true
+	 */
+	@Test
+	public void testExecuteMessageSuccess() {
+<span class="fc" id="L423">		HallInfo.clear();</span>
+<span class="fc" id="L424">		HallInfo hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L426">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L427">			hall.execute(getCorrectEnterData(&quot;testname&quot;, 1, 1));</span>
+<span class="fc" id="L428">			boolean flag = hall.execute(getCorrectMessageData(&quot;testname&quot;, &quot;hahaha&quot;));</span>
+<span class="fc" id="L429">			assertEquals(flag, true);</span>
+<span class="pc" id="L430">		} catch (Exception e) {</span>
+<span class="nc" id="L431">			fail();</span>
+		}
+<span class="fc" id="L433">	}</span>
+
+	/**.
+	 * 测试发送消息函数
+	 * 数据格式不合法，缺失message
+	 * 应抛出异常
+	 */
+	@Test
+	public void testExecuteMessageException() {
+<span class="fc" id="L442">		HallInfo.clear();</span>
+<span class="fc" id="L443">		HallInfo hall = HallInfo.getInstance();</span>
+		try {
+<span class="nc" id="L445">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="nc" id="L446">			hall.execute(getCorrectEnterData(&quot;testname&quot;, 1, 1));</span>
+<span class="nc" id="L447">			boolean flag = hall.execute(getWrongMessageData(&quot;testname&quot;));</span>
+<span class="nc" id="L448">			fail();</span>
+<span class="pc" id="L449">		} catch (Exception e) {</span>
+		}
+<span class="fc" id="L451">	}</span>
+
+	/**.
+	 * 测试发送消息函数
+	 * 数据格式合法但内容不合法。用户不在房间内。
+	 * 应返回false
+	 */
+	@Test
+	public void testExecuteMessageFail() {
+<span class="fc" id="L460">		HallInfo.clear();</span>
+<span class="fc" id="L461">		HallInfo hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L463">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L464">			boolean flag = hall.execute(getCorrectMessageData(&quot;testname&quot;, &quot;hahaha&quot;));</span>
+<span class="fc" id="L465">			assertEquals(flag, false);</span>
+<span class="pc" id="L466">		} catch (Exception e) {</span>
+<span class="nc" id="L467">			fail();</span>
+		}
+<span class="fc" id="L469">	}	</span>
+	
+	/**.
+	 * 测试离开大厅函数
+	 * 数据合法，有两种情况：
+	 * 		1）在房间中
+	 * 		2）不在房间中
+	 * 应返回true
+	 */
+	@Test
+	public void testExecuteLogoutSuccess() {
+<span class="fc" id="L480">		HallInfo.clear();</span>
+<span class="fc" id="L481">		HallInfo hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L483">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L484">			boolean flag = hall.logout(&quot;testname&quot;);</span>
+<span class="fc" id="L485">			assertEquals(flag, true);</span>
+<span class="pc" id="L486">		} catch (Exception e) {</span>
+<span class="nc" id="L487">			fail();</span>
+		}
+		
+<span class="fc" id="L490">		HallInfo.clear();</span>
+<span class="fc" id="L491">		hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L493">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L494">			hall.execute(getCorrectEnterData(&quot;testname&quot;, 999, 999));</span>
+<span class="fc" id="L495">			boolean flag = hall.logout(&quot;testname&quot;);</span>
+<span class="fc" id="L496">			assertEquals(flag, true);</span>
+<span class="pc" id="L497">		} catch (Exception e) {</span>
+<span class="nc" id="L498">			fail();</span>
+		}
+<span class="fc" id="L500">	}</span>
+
+	/**.
+	 * 测试发送消息函数
+	 * 数据格式合法但内容不合法。用户不在大厅内。
+	 * 应返回false
+	 */
+	@Test
+	public void testExecuteLogoutFail() {
+<span class="fc" id="L509">		HallInfo.clear();</span>
+<span class="fc" id="L510">		HallInfo hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L512">			boolean flag = hall.logout(&quot;testname&quot;);</span>
+<span class="fc" id="L513">			assertEquals(flag, false);</span>
+<span class="pc" id="L514">		} catch (Exception e) {</span>
+<span class="nc" id="L515">			fail();</span>
+		}
+<span class="fc" id="L517">	}</span>
+		
+	
+	/**.
+	 * 测试获取大厅状态
+	 * 应返回包含users、rooms、count的字典
+	 */
+	@Test
+	public void testGetStatusSuccess() {
+<span class="fc" id="L526">		HallInfo.clear();</span>
+<span class="fc" id="L527">		HallInfo hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L529">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L530">			hall.execute(getCorrectEnterData(&quot;testname&quot;, 999, 999));</span>
+<span class="fc" id="L531">			JSONObject status = hall.getStatus();</span>
+<span class="fc" id="L532">			assertEquals(status.has(&quot;users&quot;), true);</span>
+<span class="fc" id="L533">			assertEquals(status.has(&quot;rooms&quot;), true);</span>
+<span class="fc" id="L534">			assertEquals(status.has(&quot;count&quot;), true);</span>
+<span class="pc" id="L535">		} catch (Exception e) {</span>
+<span class="nc" id="L536">			fail();</span>
+		}
+<span class="fc" id="L538">	}</span>
+	
+	/**.
+	 * 测试获取大厅事件
+	 * 应返回包含events、rooms、count的字典
+	 */
+	@Test
+	public void testGetEventsSuccess() {
+<span class="fc" id="L546">		HallInfo.clear();</span>
+<span class="fc" id="L547">		HallInfo hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L549">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L550">			hall.execute(getCorrectEnterData(&quot;testname&quot;, 999, 999));</span>
+<span class="fc" id="L551">			JSONObject events = hall.getEvents(0);</span>
+<span class="fc" id="L552">			assertEquals(events.has(&quot;events&quot;), true);</span>
+<span class="fc" id="L553">			assertEquals(events.has(&quot;rooms&quot;), true);</span>
+<span class="fc" id="L554">			assertEquals(events.has(&quot;count&quot;), true);</span>
+<span class="pc" id="L555">		} catch (Exception e) {</span>
+<span class="nc" id="L556">			fail();</span>
+		}
+<span class="fc" id="L558">	}</span>
+	
+	/**.
+	 * 测试获取用户资料
+	 * 输入数据合法
+	 * 应返回完整的用户资料
+	 */
+	@Test
+	public void testGetDetailsSuccess() {
+<span class="fc" id="L567">		HallInfo.clear();</span>
+<span class="fc" id="L568">		HallInfo hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L570">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="fc" id="L571">			hall.execute(getCorrectEnterData(&quot;testname&quot;, 999, 999));</span>
+<span class="fc" id="L572">			JSONObject details = hall.getDetails(&quot;testname&quot;);</span>
+<span class="fc" id="L573">			assertEquals(details, getDetails(&quot;testname&quot;));</span>
+<span class="pc" id="L574">		} catch (Exception e) {</span>
+<span class="nc" id="L575">			fail();</span>
+		}
+<span class="fc" id="L577">	}</span>
+	
+	/**.
+	 * 测试获取用户资料
+	 * 输入数据不合法  大厅中没有这个用户
+	 * 应抛出异常
+	 */
+	@Test
+	public void testGetDetailsException() {
+<span class="fc" id="L586">		HallInfo.clear();</span>
+<span class="fc" id="L587">		HallInfo hall = HallInfo.getInstance();</span>
+		try {
+<span class="nc" id="L589">			hall.execute(getCorrectLoginData(&quot;testname&quot;));</span>
+<span class="nc" id="L590">			hall.execute(getCorrectEnterData(&quot;testname&quot;, 999, 999));</span>
+<span class="nc" id="L591">			JSONObject details = hall.getDetails(&quot;testname2&quot;);</span>
+<span class="nc" id="L592">			fail();</span>
+<span class="pc" id="L593">		} catch (Exception e) {</span>
+		}
+<span class="fc" id="L595">	}</span>
+
+	/**.
+	 * 测试获取用户聊天记录
+	 * 输入数据合法
+	 * 应返回用户聊天记录
+	 */
+	@Test
+	public void testGetMessagesSuccess() {
+<span class="fc" id="L604">		HallInfo.clear();</span>
+<span class="fc" id="L605">		HallInfo hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L607">			hall.execute(getCorrectLoginData(&quot;testname1&quot;));</span>
+<span class="fc" id="L608">			hall.execute(getCorrectEnterData(&quot;testname1&quot;, 0, 0));</span>
+<span class="fc" id="L609">			hall.execute(getCorrectLoginData(&quot;testname2&quot;));</span>
+<span class="fc" id="L610">			hall.execute(getCorrectEnterData(&quot;testname2&quot;, 0, 1));</span>
+<span class="fc" id="L611">			hall.execute(getCorrectMessageData(&quot;testname2&quot;, &quot;hahaha&quot;));</span>
+<span class="fc" id="L612">			JSONArray messages = hall.getMessages(&quot;testname1&quot;);</span>
+<span class="fc" id="L613">			assertEquals(messages.size(), 1);</span>
+<span class="pc" id="L614">		} catch (Exception e) {</span>
+<span class="nc" id="L615">			fail();</span>
+		}
+<span class="fc" id="L617">	}</span>
+
+	/**.
+	 * 测试获取用户聊天记录
+	 * 输入数据格式正确但内容错误，有以下几种情况：
+	 * 		1）用户不在房间中
+	 * 		2）用户不在大厅中
+	 * 应返回空JSONArray
+	 */
+	@Test
+	public void testGetMessagesFail() {
+<span class="fc" id="L628">		HallInfo.clear();</span>
+<span class="fc" id="L629">		HallInfo hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L631">			hall.execute(getCorrectLoginData(&quot;testname1&quot;));</span>
+<span class="fc" id="L632">			JSONArray messages = hall.getMessages(&quot;testname1&quot;);</span>
+<span class="fc" id="L633">			assertEquals(messages.size(), 0);</span>
+<span class="pc" id="L634">		} catch (Exception e) {</span>
+<span class="nc" id="L635">			fail();</span>
+		}
+
+<span class="fc" id="L638">		HallInfo.clear();</span>
+<span class="fc" id="L639">		hall = HallInfo.getInstance();</span>
+		try {
+<span class="fc" id="L641">			JSONArray messages = hall.getMessages(&quot;testname1&quot;);</span>
+<span class="fc" id="L642">			assertEquals(messages.size(), 0);</span>
+<span class="pc" id="L643">		} catch (Exception e) {</span>
+<span class="nc" id="L644">			fail();</span>
+		}
+<span class="fc" id="L646">	}</span>
+	
+	/**.
+	 * 测试设置游戏开始信息
+	 * 给定参数合法
+	 * 过获取游戏房间状态验证正确性，对应房间的状态应变为Playing
+	 */
+	@Test
+	public void testSetGameStartInfo() {
+<span class="fc" id="L655">		HallInfo.clear();</span>
+<span class="fc" id="L656">		HallInfo hall = HallInfo.getInstance();</span>
+
+		try {
+<span class="fc" id="L659">			hall.execute(getCorrectLoginData(&quot;testname1&quot;));</span>
+<span class="fc" id="L660">			hall.execute(getCorrectEnterData(&quot;testname1&quot;, 1, 0));</span>
+<span class="fc" id="L661">			hall.execute(getCorrectReadyData(&quot;testname1&quot;));</span>
+<span class="fc" id="L662">			hall.execute(getCorrectLoginData(&quot;testname2&quot;));</span>
+<span class="fc" id="L663">			hall.execute(getCorrectEnterData(&quot;testname2&quot;, 1, 1));</span>
+<span class="fc" id="L664">			hall.execute(getCorrectReadyData(&quot;testname2&quot;));</span>
+<span class="fc" id="L665">			JSONArray infos = new JSONArray();</span>
+<span class="fc" id="L666">			infos.add(getCorrectGameStartInfo(&quot;testname1&quot;, &quot;1.2.3.4&quot;, 10001));</span>
+<span class="fc" id="L667">			infos.add(getCorrectGameStartInfo(&quot;testname2&quot;, &quot;1.2.3.4&quot;, 10002));</span>
+<span class="fc" id="L668">			hall.setGameStartInfo(1, infos);</span>
+<span class="fc" id="L669">			JSONObject status = hall.getStatus();</span>
+<span class="fc" id="L670">			JSONArray rooms = status.getJSONArray(&quot;rooms&quot;);</span>
+<span class="fc" id="L671">			assertEquals(rooms.get(1), 1);</span>
+<span class="pc" id="L672">		} catch (Exception e) {</span>
+<span class="nc" id="L673">			fail();</span>
+		}
+<span class="fc" id="L675">	}</span>
+	
+	/**.
+	 * 测试获取游戏开始信息
+	 * 参数分为以下三类：
+	 * 		1）该用户的房间已经准备好游戏，应返回游戏开始信息
+	 * 		2）该用户的房间还没有准备好游戏，应返回空
+	 * 		3）该用户不在房间中，应返回空
+	 * 		4）该用户不在大厅中，应返回空
+	 */
+	@Test
+	public void testGetGameStartInfo() {
+<span class="fc" id="L687">		HallInfo.clear();</span>
+<span class="fc" id="L688">		HallInfo hall = HallInfo.getInstance();</span>
+
+		try {
+<span class="fc" id="L691">			hall.execute(getCorrectLoginData(&quot;testname1&quot;));</span>
+<span class="fc" id="L692">			hall.execute(getCorrectEnterData(&quot;testname1&quot;, 1, 0));</span>
+<span class="fc" id="L693">			hall.execute(getCorrectReadyData(&quot;testname1&quot;));</span>
+
+<span class="fc" id="L695">			hall.execute(getCorrectLoginData(&quot;testname2&quot;));</span>
+<span class="fc" id="L696">			hall.execute(getCorrectEnterData(&quot;testname2&quot;, 1, 1));</span>
+<span class="fc" id="L697">			hall.execute(getCorrectReadyData(&quot;testname2&quot;));</span>
+			
+<span class="fc" id="L699">			hall.execute(getCorrectLoginData(&quot;testname3&quot;));</span>
+<span class="fc" id="L700">			hall.execute(getCorrectEnterData(&quot;testname3&quot;, 2, 0));</span>
+			
+<span class="fc" id="L702">			hall.execute(getCorrectLoginData(&quot;testname4&quot;));			</span>
+<span class="fc" id="L703">			JSONArray infos = new JSONArray();</span>
+<span class="fc" id="L704">			infos.add(getCorrectGameStartInfo(&quot;testname1&quot;, &quot;1.2.3.4&quot;, 10001));</span>
+<span class="fc" id="L705">			infos.add(getCorrectGameStartInfo(&quot;testname2&quot;, &quot;1.2.3.4&quot;, 10002));</span>
+<span class="fc" id="L706">			hall.setGameStartInfo(1, infos);</span>
+			
+<span class="fc" id="L708">			JSONObject info1 = hall.getGameStartInfo(&quot;testname2&quot;);</span>
+<span class="pc bpc" id="L709" title="1 of 2 branches missed.">			assertEquals(info1 != null, true);</span>
+			
+<span class="fc" id="L711">			JSONObject info2 = hall.getGameStartInfo(&quot;testname3&quot;);</span>
+<span class="pc bpc" id="L712" title="1 of 2 branches missed.">			assertEquals(info2 == null, true);</span>
+			
+<span class="fc" id="L714">			JSONObject info3 = hall.getGameStartInfo(&quot;testname4&quot;);</span>
+<span class="pc bpc" id="L715" title="1 of 2 branches missed.">			assertEquals(info3 == null, true);</span>
+			
+<span class="fc" id="L717">			JSONObject info4 = hall.getGameStartInfo(&quot;testname5&quot;);</span>
+<span class="pc bpc" id="L718" title="1 of 2 branches missed.">			assertEquals(info4 == null, true);</span>
+<span class="pc" id="L719">		} catch (Exception e) {</span>
+<span class="nc" id="L720">			fail();</span>
+		}
+<span class="fc" id="L722">	}</span>
+	
+	/**.
+	 * 测试设置游戏结果函数
+	 */
+	@Test
+	public void testGetGameFinishInfo() {
+<span class="fc" id="L729">		HallInfo.clear();</span>
+<span class="fc" id="L730">		HallInfo hall = HallInfo.getInstance();</span>
+
+		try {
+<span class="fc" id="L733">			hall.execute(getCorrectLoginData(&quot;testname1&quot;));</span>
+<span class="fc" id="L734">			hall.execute(getCorrectEnterData(&quot;testname1&quot;, 1, 0));</span>
+<span class="fc" id="L735">			hall.execute(getCorrectReadyData(&quot;testname1&quot;));</span>
+
+<span class="fc" id="L737">			hall.execute(getCorrectLoginData(&quot;testname2&quot;));</span>
+<span class="fc" id="L738">			hall.execute(getCorrectEnterData(&quot;testname2&quot;, 1, 1));</span>
+			
+<span class="fc" id="L740">			hall.execute(getCorrectLoginData(&quot;testname3&quot;));</span>
+<span class="fc" id="L741">			hall.execute(getCorrectEnterData(&quot;testname3&quot;, 1, 2));</span>
+
+<span class="fc" id="L743">			hall.execute(getCorrectReadyData(&quot;testname2&quot;));</span>
+<span class="fc" id="L744">			hall.execute(getCorrectReadyData(&quot;testname3&quot;));</span>
+			
+<span class="fc" id="L746">			JSONArray infos = new JSONArray();</span>
+<span class="fc" id="L747">			infos.add(getCorrectGameStartInfo(&quot;testname1&quot;, &quot;1.2.3.4&quot;, 10001));</span>
+<span class="fc" id="L748">			infos.add(getCorrectGameStartInfo(&quot;testname2&quot;, &quot;1.2.3.4&quot;, 10002));</span>
+<span class="fc" id="L749">			infos.add(getCorrectGameStartInfo(&quot;testname3&quot;, &quot;1.2.3.4&quot;, 10003));</span>
+<span class="fc" id="L750">			hall.setGameStartInfo(1, infos);</span>
+			
+<span class="fc" id="L752">			JSONObject info1 = hall.getGameStartInfo(&quot;testname1&quot;);</span>
+<span class="fc" id="L753">			JSONObject info2 = hall.getGameStartInfo(&quot;testname2&quot;);</span>
+<span class="fc" id="L754">			JSONObject info3 = hall.getGameStartInfo(&quot;testname3&quot;);</span>
+			
+<span class="fc" id="L756">			JSONArray infoss = new JSONArray();</span>
+<span class="fc" id="L757">			infoss.add(getCorrectGameFinishInfo(&quot;testname1&quot;, &quot;win&quot;));</span>
+<span class="fc" id="L758">			infoss.add(getCorrectGameFinishInfo(&quot;testname2&quot;, &quot;lose&quot;));</span>
+<span class="fc" id="L759">			infoss.add(getCorrectGameFinishInfo(&quot;testname3&quot;, &quot;break&quot;));</span>
+<span class="fc" id="L760">			hall.setGameFinishedInfo(1, infoss);</span>
+			
+<span class="pc" id="L762">		} catch (Exception e) {</span>
+<span class="nc" id="L763">			fail();</span>
+		}
+<span class="fc" id="L765">	}</span>
+
+	JSONObject getDetails(String user)
+	{
+<span class="fc" id="L769">		JSONObject details = new JSONObject();</span>
+<span class="fc" id="L770">		details.put(&quot;user&quot;, user);</span>
+<span class="fc" id="L771">		details.put(&quot;exp&quot;, 1);</span>
+<span class="fc" id="L772">		details.put(&quot;level&quot;, 1);</span>
+<span class="fc" id="L773">		details.put(&quot;success&quot;, 0);</span>
+<span class="fc" id="L774">		details.put(&quot;fail&quot;, 0);</span>
+<span class="fc" id="L775">		details.put(&quot;break&quot;, 0);		</span>
+<span class="fc" id="L776">		return details;</span>
+	}
+	
+	JSONObject getCorrectLoginData(String user) {
+<span class="fc" id="L780">		JSONObject data = new JSONObject();</span>
+<span class="fc" id="L781">		data.put(&quot;type&quot;, &quot;login&quot;);</span>
+<span class="fc" id="L782">		data.put(&quot;user&quot;, user);</span>
+<span class="fc" id="L783">		data.put(&quot;details&quot;, getDetails(user));</span>
+<span class="fc" id="L784">		return data;</span>
+	}
+
+	JSONObject getWrongLoginData(String user) {
+<span class="fc" id="L788">		JSONObject data = new JSONObject();</span>
+<span class="fc" id="L789">		data.put(&quot;type&quot;, &quot;login&quot;);</span>
+<span class="fc" id="L790">		data.put(&quot;user&quot;, user);</span>
+<span class="fc" id="L791">		return data;</span>
+	}
+
+	JSONObject getCorrectEnterData(String user, int room, int pos) {
+<span class="fc" id="L795">		JSONObject data = new JSONObject();</span>
+<span class="fc" id="L796">		data.put(&quot;type&quot;, &quot;enter&quot;);</span>
+<span class="fc" id="L797">		data.put(&quot;user&quot;, user);</span>
+<span class="fc" id="L798">		data.put(&quot;room&quot;, room);</span>
+<span class="fc" id="L799">		data.put(&quot;pos&quot;, pos);</span>
+<span class="fc" id="L800">		return data;</span>
+	}
+
+	JSONObject getWrongEnterData(String user) {
+<span class="fc" id="L804">		JSONObject data = new JSONObject();</span>
+<span class="fc" id="L805">		data.put(&quot;type&quot;, &quot;enter&quot;);</span>
+<span class="fc" id="L806">		data.put(&quot;user&quot;, user);</span>
+<span class="fc" id="L807">		return data;</span>
+	}
+
+	JSONObject getCorrectLeaveData(String user) {
+<span class="fc" id="L811">		JSONObject data = new JSONObject();</span>
+<span class="fc" id="L812">		data.put(&quot;type&quot;, &quot;leave&quot;);</span>
+<span class="fc" id="L813">		data.put(&quot;user&quot;, user);</span>
+<span class="fc" id="L814">		return data;</span>
+	}
+	JSONObject getCorrectReadyData(String user) {
+<span class="fc" id="L817">		JSONObject data = new JSONObject();</span>
+<span class="fc" id="L818">		data.put(&quot;type&quot;, &quot;ready&quot;);</span>
+<span class="fc" id="L819">		data.put(&quot;user&quot;, user);</span>
+<span class="fc" id="L820">		return data;</span>
+	}
+	JSONObject getCorrectUnreadyData(String user) {
+<span class="fc" id="L823">		JSONObject data = new JSONObject();</span>
+<span class="fc" id="L824">		data.put(&quot;type&quot;, &quot;unready&quot;);</span>
+<span class="fc" id="L825">		data.put(&quot;user&quot;, user);</span>
+<span class="fc" id="L826">		return data;</span>
+	}
+	JSONObject getOtherData(String user) {
+<span class="fc" id="L829">		JSONObject data = new JSONObject();</span>
+<span class="fc" id="L830">		data.put(&quot;type&quot;, &quot;other&quot;);</span>
+<span class="fc" id="L831">		data.put(&quot;user&quot;, user);</span>
+<span class="fc" id="L832">		return data;</span>
+	}
+	JSONObject getCorrectMessageData(String user, String msg) {
+<span class="fc" id="L835">		JSONObject data = new JSONObject();</span>
+<span class="fc" id="L836">		data.put(&quot;type&quot;, &quot;message&quot;);</span>
+<span class="fc" id="L837">		data.put(&quot;message&quot;, msg);</span>
+<span class="fc" id="L838">		data.put(&quot;user&quot;, user);</span>
+<span class="fc" id="L839">		return data;</span>
+	}
+	JSONObject getWrongMessageData(String user) {
+<span class="fc" id="L842">		JSONObject data = new JSONObject();</span>
+<span class="fc" id="L843">		data.put(&quot;type&quot;, &quot;message&quot;);</span>
+<span class="fc" id="L844">		data.put(&quot;user&quot;, user);</span>
+<span class="fc" id="L845">		return data;</span>
+	}
+	JSONObject getCorrectGameStartInfo(String user, String ip, int port) {
+<span class="fc" id="L848">		JSONObject data = new JSONObject();</span>
+<span class="fc" id="L849">		data.put(&quot;user&quot;, user);</span>
+<span class="fc" id="L850">		data.put(&quot;ip&quot;, ip);</span>
+<span class="fc" id="L851">		data.put(&quot;port&quot;, port);</span>
+<span class="fc" id="L852">		return data;		</span>
+	}
+	JSONObject getCorrectGameFinishInfo(String user, String result) {
+<span class="fc" id="L855">		JSONObject data = new JSONObject();</span>
+<span class="fc" id="L856">		data.put(&quot;user&quot;, user);</span>
+<span class="fc" id="L857">		data.put(&quot;result&quot;, result);</span>
+<span class="fc" id="L858">		return data;		</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.3.201306030806</span>HallInfoTest (2013-12-14 14:40:45)</div></body></html>

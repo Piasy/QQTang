@@ -1,0 +1,238 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/loginground"
+    android:orientation="vertical"
+    tools:context=".Room2Activity" >
+    
+
+    <!--
+         The primary full-screen view. This can be replaced with whatever view
+         is needed to present your content, e.g. VideoView, SurfaceView,
+         TextureView, etc.
+    -->
+
+    <!--
+         This FrameLayout insets its children based on system windows using
+         android:fitsSystemWindows.
+    -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+
+        <LinearLayout
+            android:layout_width="208dp"
+            android:layout_height="match_parent" >
+			
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_weight="1">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:orientation="vertical" >
+
+                    <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="100dp"
+                    android:orientation="vertical" >
+
+		            <Button
+		                android:id="@+id/button1"
+		                android:layout_width="wrap_content"
+		                android:layout_height="wrap_content"
+		                android:background="@drawable/p11"
+		                android:padding="20dp"
+		                android:text="Player1" />
+		            
+		            <EditText
+		                android:id="@+id/editText3"
+		                android:layout_width="match_parent"
+		                android:layout_height="20dp"
+		                android:background="@color/black_overlay"
+		                android:editable="false"
+		                android:ems="10"
+		                android:textSize="9dp" />
+
+		            </LinearLayout>
+		            
+                    <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="100dp"
+                    android:orientation="vertical" >
+
+		            <Button
+		                android:id="@+id/button2"
+		                android:layout_width="wrap_content"
+		                android:layout_height="wrap_content"
+		                android:background="@drawable/t11"
+		                android:padding="20dp"
+		                android:text="Player2" />
+		            
+		            <EditText
+		                android:id="@+id/editText4"
+		                android:layout_width="match_parent"
+		                android:layout_height="20dp"
+		                android:background="@color/black_overlay"
+		                android:editable="false"
+		                android:ems="10"
+		                android:textSize="9dp" />
+
+		            </LinearLayout>
+
+				</LinearLayout>	            
+	        	<LinearLayout
+	            	android:layout_width="match_parent"
+	            	android:layout_height="200dp"
+	            	android:orientation="vertical" >
+
+	            	<Button
+	            	    android:id="@+id/button5"
+	            	    android:layout_width="120dp"
+	            	    android:layout_height="wrap_content"
+	            	    android:text="ready" />
+
+	        	</LinearLayout>
+	            
+	        </LinearLayout>
+	        
+	        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_weight="1"
+	            >
+
+	            <LinearLayout
+	                android:layout_width="match_parent"
+	                android:layout_height="200dp"
+	                android:orientation="vertical" >
+
+	                
+	                <LinearLayout
+	                android:layout_width="match_parent"
+	                android:layout_height="100dp"
+	                android:orientation="vertical" >
+
+	                <Button
+	                    android:id="@+id/button3"
+	                    android:layout_width="wrap_content"
+	                    android:layout_height="wrap_content"
+	                    android:background="@drawable/s11"
+	                    android:padding="20dp"
+	                    android:text="Player3" />
+	                
+	                <EditText
+	                    android:id="@+id/editText5"
+	                    android:layout_width="match_parent"
+	                    android:layout_height="20dp"
+	                    android:background="@color/black_overlay"
+	                    android:editable="false"
+	                    android:ems="10"
+	                    android:textSize="9dp" />
+
+	                </LinearLayout>
+
+	                <LinearLayout
+	                android:layout_width="match_parent"
+	                android:layout_height="100dp"
+	                android:orientation="vertical" >
+
+	                <Button
+	                    android:id="@+id/button4"
+	                    android:layout_width="wrap_content"
+	                    android:layout_height="wrap_content"
+	                    android:background="@drawable/v11"
+	                    android:padding="20dp"
+	                    android:text="Player4" />
+	                
+	                <EditText
+	                    android:id="@+id/editText6"
+	                    android:layout_width="match_parent"
+	                    android:layout_height="20dp"
+	                    android:background="@color/black_overlay"
+	                    android:editable="false"
+	                    android:ems="10"
+	                    android:textSize="9dp" />
+
+	                </LinearLayout>
+	            </LinearLayout>
+	            
+	        	<LinearLayout
+	            	android:layout_width="match_parent"
+	            	android:layout_height="207dp"
+	            	android:orientation="vertical" >
+
+	            	<Button
+	            	    android:id="@+id/button6"
+	            	    android:layout_width="wrap_content"
+	            	    android:layout_height="wrap_content"
+	            	    android:text="exit" />
+
+	        	</LinearLayout>
+
+	        </LinearLayout>
+		</LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" 
+	        android:orientation="vertical">
+            <LinearLayout
+                android:layout_width="match_parent"
+               	android:layout_height="wrap_content"
+               	android:layout_weight="1">
+
+                <EditText
+                    android:id="@+id/editText1"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:background="@color/black_overlay"
+                    android:editable="false"
+                    android:ems="10"
+                    android:gravity="bottom"
+                    android:scrollHorizontally="true" />
+
+            </LinearLayout>
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.38" 
+                android:orientation="vertical">
+
+            	<EditText
+            	    android:id="@+id/editText2"
+            	    android:layout_width="match_parent"
+            	    android:layout_height="wrap_content"
+            	    android:background="@color/black_overlay"
+            	    android:ems="10" >
+
+                	<requestFocus />
+            	</EditText>
+            	
+            	<LinearLayout
+                android:layout_width="wrap_content"
+               	android:layout_height="wrap_content"
+               	android:layout_weight="0.5">
+
+	            	<Button
+	            	    android:id="@+id/button7"
+	            	    android:layout_width="wrap_content"
+	            	    android:layout_height="wrap_content"
+	            	    android:text="Send" />
+
+            	</LinearLayout>
+            	
+            </LinearLayout>
+           
+		</LinearLayout>
+        
+    </LinearLayout>
+
+</FrameLayout>

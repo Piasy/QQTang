@@ -8,7 +8,6 @@ import org.json.JSONObject;
 import com.example.client.R;
 import com.example.client.R.drawable;
 import com.example.client.controller.Controller;
-import com.example.client.model.Config;
 import com.example.client.view.myWidgets.MyButton;
 import com.example.client.view.myWidgets.MyPerson;
 import com.example.client.view.myWidgets.MyRoom;
@@ -136,9 +135,7 @@ public class RoomView extends SurfaceView implements SurfaceHolder.Callback {
         
         roomnumber = controller.getMyRoomNum();
         
-        Log.d(Config.LOG_TAG, "get controller in room view : " + controller + " " + roomnumber);
-        //Log.d(Config.LOG_TAG, "hall model in room view : " + controller.hallModel + " " + controller.hallModel.users);
-        
+ 
 		ready = new MyButton(btn_pic, btn_pic, Constant.BLOCK_WIDTH * 2, Constant.BLOCK_HEIGHT * 4.2f, "ready");
 		exit = new MyButton(btn_pic, btn_pic, Constant.BLOCK_WIDTH * 4, Constant.BLOCK_HEIGHT * 4.2f, "exit");
 		send = new MyButton(btn_pic, btn_pic, Constant.BLOCK_WIDTH * 6, Constant.BLOCK_HEIGHT * 4.2f, "send");
@@ -150,7 +147,6 @@ public class RoomView extends SurfaceView implements SurfaceHolder.Callback {
 		{
 		    person[i] = new MyPerson(person_pic, person_pic, Constant.BLOCK_WIDTH * location[i][0], Constant.BLOCK_HEIGHT * location[i][1]);
 		}
-		Log.d(Config.LOG_TAG, "create thread here");
 		createAllThreads();
 		startAllThreads();
 
@@ -168,7 +164,6 @@ public class RoomView extends SurfaceView implements SurfaceHolder.Callback {
     	case MotionEvent.ACTION_DOWN:
     		if(ready.isPointInRect(pointx, pointy)){
     			if (ready.isOnflag() == true) {
-    			//	input.showSoftInput(this,0);
     				if (ready.getInfo() == "ready")
     					ready();
     				else
@@ -332,48 +327,36 @@ public class RoomView extends SurfaceView implements SurfaceHolder.Callback {
 	void getSnapShot(){
 		JSONObject snapShot;
 		try {
-			Log.d(Config.LOG_TAG, "roomnum " + roomnumber);
-			String snap = controller.getHallSnapShot(roomnumber, roomnumber);
-			if (snap != null)
-			{
-				//Log.d(Config.LOG_TAG, snap);
-				snapShot = new JSONObject(snap);		
-				//Log.d(tag, msg)
-				System.out.println(snapShot);
-				@SuppressWarnings("rawtypes")
-				JSONArray rooms = snapShot.getJSONArray ("rooms");
-				
-				for (int i = 0; i < rooms.length(); i ++)
-				{
-					JSONObject room = rooms.getJSONObject(i);
-					String status = room.getString("status");
-					JSONArray users = room.getJSONArray("users");
-					String players = "";
-					for (int j = 0; j < 4; j++){
-						this.person_name[j] = "player" + j;
-						this.person_state[j] = "empty";
-					}
-					for(int j = 0; j < users.length(); j++)
-					{
-						Log.v("RoomSnap", "room");
-						JSONObject player = users.getJSONObject(j);
-						String playername = player.getString("user");
-						JSONObject playerdetails = player.getJSONObject("details");
-						String playerinfo = playerdetails.getString("level");
-						String playerstate = player.getString("ready");
-						int pos = player.getInt("pos");
-						this.person_name[pos] = playername;
-						this.person_player[pos] = playerinfo;
-						this.person_state[pos] = playerstate;
-					}
-					
-				}
-			}
-			else
-			{
-				//Log.d(Config.LOG_TAG, "null pointer");
-			}
+			snapShot = new JSONObject(controller.getHallSnapShot(roomnumber, roomnumber));		
+			System.out.println(snapShot);
+			@SuppressWarnings("rawtypes")
+			JSONArray rooms = snapShot.getJSONArray ("rooms");
 			
+			for (int i = 0; i < rooms.length(); i ++)
+			{
+				JSONObject room = rooms.getJSONObject(i);
+				String status = room.getString("status");
+				JSONArray users = room.getJSONArray("users");
+				String players = "";
+				for (int j = 0; j < 4; j++){
+					this.person_name[j] = "player" + j;
+					this.person_state[j] = "empty";
+				}
+				for(int j = 0; j < users.length(); j++)
+				{
+					Log.v("RoomSnap", "room");
+					JSONObject player = users.getJSONObject(j);
+					String playername = player.getString("user");
+					JSONObject playerdetails = player.getJSONObject("details");
+					String playerinfo = playerdetails.getString("level");
+					String playerstate = player.getString("ready");
+					int pos = player.getInt("pos");
+					this.person_name[pos] = playername;
+					this.person_player[pos] = playerinfo;
+					this.person_state[pos] = playerstate;
+				}
+				
+			}
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -460,13 +443,12 @@ public class RoomView extends SurfaceView implements SurfaceHolder.Callback {
 				}
 				else if (hallStatus.getString("type").equals("leave")){
 					String status = "";
-					Log.v("myinfo", "in roomview get leave info");
+					
 				    if (hallStatus.has("status"))
 				    	status = hallStatus.getString("status");
 				    if (status != null && status.equals("Success"))
 				    {
 				    	Toast.makeText(activity, "successfuly ", Toast.LENGTH_SHORT).show();
-				    	stopAllThreads();
 				    	activity.gotoChooseView();
 				    }
 				    else
@@ -479,7 +461,6 @@ public class RoomView extends SurfaceView implements SurfaceHolder.Callback {
 					if (hallStatus.has("status"))
 						status = hallStatus.getString("status");
 					if (status != null && status.equals("prepare")){
-						stopAllThreads();
 						activity.gotoGame();
 					}
 				}
@@ -490,27 +471,12 @@ public class RoomView extends SurfaceView implements SurfaceHolder.Callback {
 			}
 		}
 	 };
-	 
-	 private static int drawThreadInstanceCount = 0;
-	 
-	DrawThread getDrawThreadInstance()
-	{
-		DrawThread instance = null;
-		if (drawThreadInstanceCount == 0)
-		{
-			drawThreadInstanceCount ++;
-			instance = new DrawThread(this);
-		}
-		return instance;
-	}
-	 
 	/**
 	 * �滭�̣߳�ÿ500msˢ��һ��
 	 */
 	public class DrawThread extends Thread{
 		private boolean flag = true;	
 		private int sleepSpan = 500;
-		
 		public DrawThread(RoomView fatherView){
 		}
 		public void run(){
@@ -529,10 +495,8 @@ public class RoomView extends SurfaceView implements SurfaceHolder.Callback {
 	            express.setInfo(talk);
 	            repaint();
 	        }
-	        drawThreadInstanceCount --;
 		}
 		public void setFlag(boolean flag) {
-			Log.d(Config.LOG_TAG, "flag: " + flag);
 			this.flag = flag;
 		}
 	}

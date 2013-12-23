@@ -16,7 +16,6 @@ import com.example.client.R.id;
 import com.example.client.R.layout;
 import com.example.client.R.menu;
 import com.example.client.controller.Controller;
-import com.example.client.model.Config;
 import com.example.client.view.myWidgets.MyText;
 import com.example.client.view.others.Constant;
 
@@ -54,7 +53,7 @@ public class RoomActivity extends Activity {
 /**
  * RoomView成员，负责房间绘图
  */
-	RoomView roomview = null;
+	RoomView roomview;
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 	       
@@ -65,7 +64,7 @@ public class RoomActivity extends Activity {
         		WindowManager.LayoutParams.FLAG_FULLSCREEN);//设置全屏
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);//强制横屏
         
-        Log.d(Config.LOG_TAG, "create room activity here");
+
         gotoRoomView();//打开RoomView
 		
 	}
@@ -87,7 +86,6 @@ public class RoomActivity extends Activity {
     public void gotoChooseView(){
     	Intent intent = new Intent();
     	intent.setClass(RoomActivity.this, HallActivity.class);
-    	Log.d(Config.LOG_TAG, "go to hall activity from room activity");
     	finish();
     	startActivity(intent);
     	
@@ -109,11 +107,9 @@ public class RoomActivity extends Activity {
 	public void gotoRoomView()
 	{
 		if(roomview==null){
-			Log.d(Config.LOG_TAG, "new room view here");
 			roomview=new RoomView(this, mytext);
     	}
 //		setContentView(mytext);
-		Log.d(Config.LOG_TAG, "set content view room view here");
     	setContentView(roomview);
         roomview.requestFocus();//获得焦点
     	roomview.setFocusableInTouchMode(true);//焦点可触

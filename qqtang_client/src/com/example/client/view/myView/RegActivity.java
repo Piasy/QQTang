@@ -9,7 +9,6 @@ import com.example.client.R.layout;
 import com.example.client.R.menu;
 import com.example.client.R.string;
 import com.example.client.controller.Controller;
-import com.example.client.model.Config;
 import com.example.client.view.others.Constant;
 
 import android.animation.Animator;
@@ -63,7 +62,7 @@ public class RegActivity extends Activity {
 		password = (EditText) findViewById(R.id.reg_password);
 		repassword = (EditText) findViewById(R.id.reg_repassword);
 		register = (Button) findViewById(R.id.reg_button);
-		//regreturn = (Button) findViewById(R.id.reg_return);
+		regreturn = (Button) findViewById(R.id.reg_return);
 		controller = Controller.getController();
 		controller.setHandler(regHandler);
 		register.setOnClickListener(new Button.OnClickListener() {
@@ -94,7 +93,6 @@ public class RegActivity extends Activity {
     public void gotoChooseView() {
 		Intent intent = new Intent();
 		intent.setClass(RegActivity.this, HallActivity.class);
-		Log.d(Config.LOG_TAG, "go to hall activity from reg activity");
 		finish();
 		startActivity(intent);
     }

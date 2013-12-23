@@ -12,5 +12,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/hello_world" />
-
+	<com.example.client.view.myWidgets.MyText
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="100dp"
+        android:text=""
+        android:id="@+id/test"
+        />
 </RelativeLayout>

@@ -41,7 +41,7 @@ public class ChooseView extends SurfaceView implements SurfaceHolder.Callback {
     /**.
      * HallActivity的引用
      */
-    public HallActivity activity = null;
+    HallActivity activity;
     /**.
      * 刷帧线程
      */
@@ -70,7 +70,7 @@ public class ChooseView extends SurfaceView implements SurfaceHolder.Callback {
 	Controller controller;
 	
 	public void IncPage(){
-		if (page < 12)
+		if (page < 11)
 			page += 1;
 		else
 			Toast.makeText(activity, "page out of range", Toast.LENGTH_SHORT).show();
@@ -87,17 +87,9 @@ public class ChooseView extends SurfaceView implements SurfaceHolder.Callback {
      * 构造函数
      */
 	public ChooseView(HallActivity activity) {
-		
 		super(activity);
-		
-		Log.d(Config.LOG_TAG, "before assign ref of hall activity, null? " + (this.activity == null));
-		if (this.activity != null)
-			Log.d(Config.LOG_TAG, "before assign ref of hall activity: " + this.activity);
-		Log.d(Config.LOG_TAG, "new choose view");
 		this.activity = activity;
-		Log.d(Config.LOG_TAG, "after assign ref of hall activity");
 		getHolder().addCallback(this); //注册回调接口
-		Log.d(Config.LOG_TAG, "after add callback");
         controller = Controller.getController();
         controller.setHandler(chooseHandler);		
 	}
@@ -118,8 +110,6 @@ public class ChooseView extends SurfaceView implements SurfaceHolder.Callback {
 		for (int i = 0; i < 4; i++) {
 		    room[i] = new MyRoom(room_pic, room_pic, Constant.BLOCK_WIDTH * location[i][0], Constant.BLOCK_HEIGHT * location[i][1]);
 		}
-		
-		Log.d(Config.LOG_TAG, "create choose view");
 		createAllThreads();
 		startAllThreads();
 

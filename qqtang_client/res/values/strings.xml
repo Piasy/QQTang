@@ -11,7 +11,6 @@
     <string name="title_activity_reg">RegActivity</string>
     <string name="register">register</string>
     <string name="username">username</string>
-    
 
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
@@ -24,5 +23,8 @@
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
-    
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="title_activity_room2">Room2Activity</string>
+
 </resources>

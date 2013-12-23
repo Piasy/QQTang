@@ -16,7 +16,6 @@ import com.example.client.R.id;
 import com.example.client.R.layout;
 import com.example.client.R.menu;
 import com.example.client.controller.Controller;
-import com.example.client.model.Config;
 import com.example.client.view.others.Constant;
 
 import android.os.Bundle;
@@ -61,7 +60,6 @@ public class HallActivity extends Activity {
         		WindowManager.LayoutParams.FLAG_FULLSCREEN); //去掉标头
         this.setRequestedOrientation(
         		ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE); //强制横屏
-        Log.d(Config.LOG_TAG, "create hall activity");
         gotoChooseView(); //进入"欢迎界面"
 	}
     /**.
@@ -70,9 +68,6 @@ public class HallActivity extends Activity {
     public void gotoChooseView() {
     	if (chooseView == null) {
 			chooseView = new ChooseView(this);
-			if (chooseView.activity != null)
-				Log.d(Config.LOG_TAG, "hall activity in chooseview null? " + chooseView.activity);
-			Log.d(Config.LOG_TAG, "hall activity in chooseview null? " + (chooseView.activity == null));
     	}
     	setContentView(chooseView);
         chooseView.requestFocus(); //获取焦点
@@ -83,10 +78,9 @@ public class HallActivity extends Activity {
      */
     public void gotoRoom() {
 		Intent intent = new Intent();
-		intent.setClass(HallActivity.this, RoomActivity.class);
+		intent.setClass(HallActivity.this, Room2Activity.class);
 		finish();
 		startActivity(intent);
-		Log.d(Config.LOG_TAG, "Hall to Room here");
     }
 
     public void gotoGame() {

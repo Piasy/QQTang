@@ -8,7 +8,6 @@ import com.example.client.R.id;
 import com.example.client.R.layout;
 import com.example.client.R.menu;
 import com.example.client.controller.Controller;
-import com.example.client.model.Config;
 import com.example.client.view.others.Constant;
 
 import android.os.Bundle;
@@ -101,7 +100,6 @@ public class MainActivity extends Activity {
 	 */
     public void gotoChooseView() {
 		Intent intent = new Intent();
-		Log.d(Config.LOG_TAG, "go to hall activity from main activity");
 		intent.setClass(MainActivity.this, HallActivity.class);
 		finish();
 		startActivity(intent);

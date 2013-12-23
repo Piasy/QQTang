@@ -95,7 +95,7 @@ public class GameActivity extends Activity {
      */
 	public void goToRoom() {
 		Intent intent = new Intent();
-		intent.setClass(GameActivity.this, RoomActivity.class);
+		intent.setClass(GameActivity.this, Room2Activity.class);
 		finish();
 		startActivity(intent);
 	}

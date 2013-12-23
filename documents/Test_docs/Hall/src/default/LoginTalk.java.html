@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>LoginTalk.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">HallInfoTest (2013-12-14 14:40:45)</a> &gt; <a href="../../index.html" class="el_group">Hall</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.html" class="el_package">default</a> &gt; <span class="el_source">LoginTalk.java</span></div><h1>LoginTalk.java</h1><pre class="source lang-java linenums">import java.util.*;
+import java.io.*;
+import java.net.*;
+import net.sf.json.*;
+	
+/**.
+ * 这个类负责与登录服务器通信
+ */
+<span class="nc" id="L9">public class LoginTalk extends Talk {</span>
+	/**.
+	 * 一个静态方法，负责创建与登录服务器通信的类
+	 */
+	public static void connectLoginServer(String user, String password, String addr, int port)
+	{
+<span class="nc" id="L15">		JSONObject information = new JSONObject();</span>
+<span class="nc" id="L16">		information.put(&quot;user&quot;, user);</span>
+<span class="nc" id="L17">		information.put(&quot;password&quot;, password);</span>
+<span class="nc" id="L18">		information.put(&quot;ip&quot;, addr);</span>
+<span class="nc" id="L19">		information.put(&quot;port&quot;, port);</span>
+		try {
+<span class="nc" id="L21">			Socket socket = new Socket(Config.LOGIN_ADDR, Config.LOGIN_PORT);</span>
+<span class="nc" id="L22">			PrintWriter os = new PrintWriter(socket.getOutputStream());</span>
+<span class="nc" id="L23">			Log.login(&quot;Send: &quot; + information.toString());</span>
+<span class="nc" id="L24">			os.println(information.toString());</span>
+<span class="nc" id="L25">			os.flush();</span>
+<span class="nc" id="L26">			Talk.add(&quot;loginServer&quot;, socket, null, os);</span>
+<span class="nc" id="L27">		} catch (Exception e) {</span>
+<span class="nc" id="L28">			Log.loginErr(&quot;Connect to LoginServer fail&quot;, e);</span>
+		}
+<span class="nc" id="L30">	}</span>
+
+	/**.
+	 * 新线程开始运行
+	 */
+	public void run() {
+<span class="nc" id="L36">		Log.log(&quot;Connected to LoginServer&quot;);</span>
+<span class="nc" id="L37">		timer.schedule(new SubmitTask(), 0, Constant.SUBMIT_PERIOD_FOR_LOGINSERVER);</span>
+<span class="nc" id="L38">		int errCount = 0;</span>
+<span class="nc bnc" id="L39" title="All 2 branches missed.">		while (runFlag) {</span>
+			try {
+<span class="nc" id="L41">				String text = is.readLine();</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">				if (!runFlag) {</span>
+<span class="nc" id="L43">					break;</span>
+				}
+<span class="nc" id="L45">				Log.login(&quot;Receive: &quot; + text);</span>
+<span class="nc" id="L46">				JSONObject data = JSONObject.fromObject(text);</span>
+<span class="nc" id="L47">				data.put(&quot;timestamp&quot;, System.currentTimeMillis());</span>
+<span class="nc" id="L48">				data.put(&quot;status&quot;, &quot;online&quot;);</span>
+<span class="nc" id="L49">				String user = data.getString(&quot;user&quot;);</span>
+<span class="nc" id="L50">				synchronized (clientConnection) {</span>
+<span class="nc bnc" id="L51" title="All 4 branches missed.">					if (!clientConnection.has(user) || clientConnection.getJSONObject(user).getString(&quot;status&quot;).equals(&quot;offline&quot;)) </span>
+<span class="nc" id="L52">						clientConnection.put(user, data);</span>
+				}
+<span class="nc" id="L54">			} catch (Exception e) {</span>
+<span class="nc" id="L55">				Log.loginErr(&quot;Connection&quot;, e);</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">				if (errCount++ &gt; 2) {</span>
+<span class="nc" id="L57">					break;</span>
+				}
+			}
+		}
+<span class="nc" id="L61">		stop();</span>
+<span class="nc" id="L62">	}</span>
+
+	/**.
+	 * 这个类负责向登录服务器发送用户资料
+	 */
+<span class="nc" id="L67">	class SubmitTask extends TimerTask {</span>
+		public void run() {
+			try {
+<span class="nc" id="L70">				JSONArray userData = new JSONArray();</span>
+<span class="nc" id="L71">				int count = 0;</span>
+<span class="nc" id="L72">				synchronized (clientConnection) {</span>
+<span class="nc" id="L73">					Set set = clientConnection.keySet();</span>
+<span class="nc" id="L74">					Iterator iter = set.iterator();</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">					while (iter.hasNext()) {</span>
+<span class="nc" id="L76">						String user = (String)iter.next();</span>
+<span class="nc" id="L77">						JSONObject connection = clientConnection.getJSONObject(user);</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">						if (connection.getString(&quot;status&quot;).equals(&quot;online&quot;)) {</span>
+<span class="nc" id="L79">							long currentTime = System.currentTimeMillis();</span>
+<span class="nc" id="L80">							JSONObject data = new JSONObject();</span>
+<span class="nc" id="L81">							data.put(&quot;user&quot;, connection.getString(&quot;user&quot;));</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">							if (connection.getLong(&quot;timestamp&quot;) + Constant.TIME_LIMIT_FOR_CLIENT &lt; currentTime) {</span>
+<span class="nc" id="L83">								connection.put(&quot;status&quot;, &quot;offline&quot;);</span>
+<span class="nc" id="L84">								data.put(&quot;status&quot;, &quot;offline&quot;);</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">								if (connection.has(&quot;details&quot;)) {</span>
+<span class="nc" id="L86">                                                                        data.put(&quot;details&quot;, connection.getJSONObject(&quot;details&quot;));</span>
+<span class="nc" id="L87">                                                                } else {</span>
+<span class="nc" id="L88">                                                                        data.put(&quot;details&quot;, hall.getDetails(user));</span>
+<span class="nc" id="L89">								        hall.logout(user);</span>
+                                                                }
+							
+<span class="nc" id="L92">                                                        } else {</span>
+<span class="nc" id="L93">								count ++;</span>
+<span class="nc" id="L94">								data.put(&quot;status&quot;, &quot;online&quot;);</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">								if (connection.has(&quot;details&quot;)) {</span>
+<span class="nc" id="L96">                                                                        data.put(&quot;details&quot;, connection.getJSONObject(&quot;details&quot;));</span>
+<span class="nc" id="L97">                                                                } else {</span>
+<span class="nc" id="L98">                                                                        data.put(&quot;details&quot;, hall.getDetails(user));</span>
+                                                                }
+							}
+<span class="nc" id="L101">							userData.add(data);</span>
+						}
+					}
+				}
+<span class="nc" id="L105">				JSONObject result = new JSONObject();</span>
+<span class="nc" id="L106">				result.put(&quot;userData&quot;, userData);</span>
+<span class="nc" id="L107">				result.put(&quot;limit&quot;, Constant.HALL_LIMIT - count);</span>
+<span class="nc" id="L108">				os.println(result.toString());</span>
+<span class="nc" id="L109">				os.flush();</span>
+<span class="nc" id="L110">				Log.login(&quot;Send: &quot; + result);</span>
+<span class="nc" id="L111">			} catch (Exception e) {</span>
+<span class="nc" id="L112">				Log.loginErr(&quot;SubmitTask: &quot;, e);</span>
+			}
+<span class="nc" id="L114">		}</span>
+	}
+
+	protected void stop() {
+<span class="nc" id="L118">		Log.log(&quot;HallServer stop&quot;);</span>
+<span class="nc" id="L119">		super.stop();</span>
+<span class="nc" id="L120">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.3.201306030806</span>HallInfoTest (2013-12-14 14:40:45)</div></body></html>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry exported="true" kind="lib" path="/Users/qianqiao/qqtang/server/Hall/lib/commons-beanutils-1.8.3.jar"/>
+	<classpathentry exported="true" kind="lib" path="/Users/qianqiao/qqtang/server/Hall/lib/commons-collections-3.2.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="/Users/qianqiao/qqtang/server/Hall/lib/commons-httpclient.jar"/>
+	<classpathentry exported="true" kind="lib" path="/Users/qianqiao/qqtang/server/Hall/lib/commons-lang-2.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="/Users/qianqiao/qqtang/server/Hall/lib/commons-logging-1.1.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="/Users/qianqiao/qqtang/server/Hall/lib/ezmorph-1.0.6.jar"/>
+	<classpathentry exported="true" kind="lib" path="/Users/qianqiao/qqtang/server/Hall/lib/json-lib-2.4-jdk15.jar"/>
+	<classpathentry exported="true" kind="lib" path="/Users/qianqiao/qqtang/server/Hall/lib/mysql-connector-java-5.1.6-bin.jar"/>
+	<classpathentry exported="true" kind="lib" path="/Users/qianqiao/qqtang/server/Hall/lib/junit-4.8.2.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
